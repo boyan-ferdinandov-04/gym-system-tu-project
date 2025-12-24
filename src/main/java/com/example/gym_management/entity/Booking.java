@@ -1,9 +1,17 @@
 package com.example.gym_management.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "bookings")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Booking {
 
   @Id
@@ -22,44 +30,9 @@ public class Booking {
   @Column(nullable = false, length = 20)
   private BookingStatus status;
 
-  public Booking() {
-  }
-
   public Booking(Member member, ScheduledClass scheduledClass, BookingStatus status) {
     this.member = member;
     this.scheduledClass = scheduledClass;
-    this.status = status;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Member getMember() {
-    return member;
-  }
-
-  public void setMember(Member member) {
-    this.member = member;
-  }
-
-  public ScheduledClass getScheduledClass() {
-    return scheduledClass;
-  }
-
-  public void setScheduledClass(ScheduledClass scheduledClass) {
-    this.scheduledClass = scheduledClass;
-  }
-
-  public BookingStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(BookingStatus status) {
     this.status = status;
   }
 

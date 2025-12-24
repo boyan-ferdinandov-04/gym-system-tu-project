@@ -1,11 +1,20 @@
 package com.example.gym_management.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payments")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Payment {
 
   @Id
@@ -26,53 +35,10 @@ public class Payment {
   @Column(nullable = false, length = 20)
   private PaymentStatus status;
 
-  public Payment() {
-  }
-
   public Payment(Member member, BigDecimal amount, LocalDateTime paymentDate, PaymentStatus status) {
     this.member = member;
     this.amount = amount;
     this.paymentDate = paymentDate;
-    this.status = status;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Member getMember() {
-    return member;
-  }
-
-  public void setMember(Member member) {
-    this.member = member;
-  }
-
-  public BigDecimal getAmount() {
-    return amount;
-  }
-
-  public void setAmount(BigDecimal amount) {
-    this.amount = amount;
-  }
-
-  public LocalDateTime getPaymentDate() {
-    return paymentDate;
-  }
-
-  public void setPaymentDate(LocalDateTime paymentDate) {
-    this.paymentDate = paymentDate;
-  }
-
-  public PaymentStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(PaymentStatus status) {
     this.status = status;
   }
 

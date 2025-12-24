@@ -1,10 +1,19 @@
 package com.example.gym_management.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
 @Entity
 @Table(name = "class_types")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClassType {
 
   @Id
@@ -20,43 +29,8 @@ public class ClassType {
   @OneToMany(mappedBy = "classType", cascade = CascadeType.ALL)
   private List<ScheduledClass> scheduledClasses;
 
-  public ClassType() {
-  }
-
   public ClassType(String name, String description) {
     this.name = name;
     this.description = description;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public List<ScheduledClass> getScheduledClasses() {
-    return scheduledClasses;
-  }
-
-  public void setScheduledClasses(List<ScheduledClass> scheduledClasses) {
-    this.scheduledClasses = scheduledClasses;
   }
 }
