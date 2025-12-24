@@ -20,8 +20,11 @@ public class Member {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, length = 100)
-  private String name;
+  @Column(name = "first_name", nullable = false, length = 50)
+  private String firstName;
+
+  @Column(name = "last_name", nullable = false, length = 50)
+  private String lastName;
 
   @Column(nullable = false, unique = true, length = 255)
   private String email;
@@ -36,8 +39,9 @@ public class Member {
   @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
   private List<Payment> payments;
 
-  public Member(String name, String email, MembershipPlan membershipPlan) {
-    this.name = name;
+  public Member(String firstName, String lastName, String email, MembershipPlan membershipPlan) {
+    this.firstName = firstName;
+    this.lastName = lastName;
     this.email = email;
     this.membershipPlan = membershipPlan;
   }
