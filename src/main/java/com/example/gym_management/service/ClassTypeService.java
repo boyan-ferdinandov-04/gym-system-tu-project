@@ -3,6 +3,7 @@ package com.example.gym_management.service;
 import com.example.gym_management.dto.ClassTypeRequest;
 import com.example.gym_management.dto.ClassTypeResponse;
 import com.example.gym_management.entity.ClassType;
+import com.example.gym_management.mapper.ClassTypeMapper;
 import com.example.gym_management.repository.ClassTypeRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class ClassTypeService {
 
   private final ClassTypeRepository classTypeRepository;
+  private final ClassTypeMapper classTypeMapper;
 
   @Transactional
   public ClassTypeResponse createClassType(@Valid ClassTypeRequest request) {
@@ -26,26 +27,21 @@ public class ClassTypeService {
       throw new IllegalStateException("Class type with name '" + request.getName() + "' already exists");
     }
 
-    ClassType classType = new ClassType(
-        request.getName(),
-        request.getDescription());
+    ClassType classType = classTypeMapper.toEntity(request);
     ClassType saved = classTypeRepository.save(classType);
-    return ClassTypeResponse.fromEntityWithoutCount(saved);
+    return classTypeMapper.toResponseWithoutCount(saved);
   }
 
   @Transactional(readOnly = true)
   public ClassTypeResponse getClassTypeById(Long id) {
     ClassType classType = classTypeRepository.findByIdWithScheduledClasses(id)
         .orElseThrow(() -> new IllegalArgumentException("Class type not found with id: " + id));
-    return ClassTypeResponse.fromEntity(classType);
+    return classTypeMapper.toResponse(classType);
   }
 
   @Transactional(readOnly = true)
   public List<ClassTypeResponse> getAllClassTypes() {
-    return classTypeRepository.findAll()
-        .stream()
-        .map(ClassTypeResponse::fromEntityWithoutCount)
-        .collect(Collectors.toList());
+    return classTypeMapper.toResponseListWithoutCount(classTypeRepository.findAll());
   }
 
   @Transactional(readOnly = true)
@@ -53,10 +49,7 @@ public class ClassTypeService {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Search name cannot be empty");
     }
-    return classTypeRepository.searchByName(name)
-        .stream()
-        .map(ClassTypeResponse::fromEntityWithoutCount)
-        .collect(Collectors.toList());
+    return classTypeMapper.toResponseListWithoutCount(classTypeRepository.searchByName(name));
   }
 
   @Transactional
@@ -70,11 +63,10 @@ public class ClassTypeService {
       throw new IllegalStateException("Class type with name '" + request.getName() + "' already exists");
     }
 
-    existingClassType.setName(request.getName());
-    existingClassType.setDescription(request.getDescription());
+    classTypeMapper.updateEntity(request, existingClassType);
 
     ClassType updated = classTypeRepository.save(existingClassType);
-    return ClassTypeResponse.fromEntityWithoutCount(updated);
+    return classTypeMapper.toResponseWithoutCount(updated);
   }
 
   @Transactional

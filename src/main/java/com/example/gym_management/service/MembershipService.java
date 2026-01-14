@@ -3,6 +3,7 @@ package com.example.gym_management.service;
 import com.example.gym_management.dto.MembershipPlanRequest;
 import com.example.gym_management.dto.MembershipPlanResponse;
 import com.example.gym_management.entity.MembershipPlan;
+import com.example.gym_management.mapper.MembershipPlanMapper;
 import com.example.gym_management.repository.MembershipPlanRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,39 +19,30 @@ import java.util.stream.Collectors;
 public class MembershipService {
 
   private final MembershipPlanRepository membershipPlanRepository;
+  private final MembershipPlanMapper membershipPlanMapper;
 
   @Transactional
   public MembershipPlanResponse createMembershipPlan(@Valid MembershipPlanRequest request) {
-    MembershipPlan membershipPlan = new MembershipPlan(
-        request.getTierName(),
-        request.getPrice(),
-        request.getDurationDays()
-    );
+    MembershipPlan membershipPlan = membershipPlanMapper.toEntity(request);
     MembershipPlan saved = membershipPlanRepository.save(membershipPlan);
-    return MembershipPlanResponse.fromEntity(saved);
+    return membershipPlanMapper.toResponse(saved);
   }
 
   @Transactional(readOnly = true)
   public MembershipPlanResponse getMembershipPlanById(Long id) {
     MembershipPlan plan = membershipPlanRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Membership plan not found with id: " + id));
-    return MembershipPlanResponse.fromEntity(plan);
+    return membershipPlanMapper.toResponse(plan);
   }
 
   @Transactional(readOnly = true)
   public List<MembershipPlanResponse> getAllMembershipPlans() {
-    return membershipPlanRepository.findAll()
-        .stream()
-        .map(MembershipPlanResponse::fromEntity)
-        .collect(Collectors.toList());
+    return membershipPlanMapper.toResponseList(membershipPlanRepository.findAll());
   }
 
   @Transactional(readOnly = true)
   public List<MembershipPlanResponse> getAvailableMembershipPlans() {
-    return membershipPlanRepository.findAll()
-        .stream()
-        .map(MembershipPlanResponse::fromEntity)
-        .collect(Collectors.toList());
+    return membershipPlanMapper.toResponseList(membershipPlanRepository.findAll());
   }
 
   @Transactional(readOnly = true)
@@ -59,10 +50,7 @@ public class MembershipService {
     if (tierName == null || tierName.trim().isEmpty()) {
       throw new IllegalArgumentException("Tier name cannot be null or empty");
     }
-    return membershipPlanRepository.findByTierNameContainingIgnoreCase(tierName)
-        .stream()
-        .map(MembershipPlanResponse::fromEntity)
-        .collect(Collectors.toList());
+    return membershipPlanMapper.toResponseList(membershipPlanRepository.findByTierNameContainingIgnoreCase(tierName));
   }
 
   @Transactional(readOnly = true)
@@ -70,10 +58,7 @@ public class MembershipService {
     if (maxDurationDays == null || maxDurationDays <= 0) {
       throw new IllegalArgumentException("Max duration days must be a positive integer");
     }
-    return membershipPlanRepository.findByDurationDaysLessThanEqual(maxDurationDays)
-        .stream()
-        .map(MembershipPlanResponse::fromEntity)
-        .collect(Collectors.toList());
+    return membershipPlanMapper.toResponseList(membershipPlanRepository.findByDurationDaysLessThanEqual(maxDurationDays));
   }
 
   @Transactional
@@ -81,12 +66,10 @@ public class MembershipService {
     MembershipPlan existingPlan = membershipPlanRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Membership plan not found with id: " + id));
 
-    existingPlan.setTierName(request.getTierName());
-    existingPlan.setPrice(request.getPrice());
-    existingPlan.setDurationDays(request.getDurationDays());
+    membershipPlanMapper.updateEntity(request, existingPlan);
 
     MembershipPlan updated = membershipPlanRepository.save(existingPlan);
-    return MembershipPlanResponse.fromEntity(updated);
+    return membershipPlanMapper.toResponse(updated);
   }
 
   @Transactional
