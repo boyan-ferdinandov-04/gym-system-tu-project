@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,6 +20,5 @@ public class TrainerRequest {
     @Size(max = 50, message = "Last name cannot exceed 50 characters")
     private String lastName;
 
-    @Size(max = 255, message = "Specialization cannot exceed 255 characters")
-    private String specialization;
+    private Set<Long> classTypeIds;
 }

@@ -13,7 +13,6 @@ public class TrainerDTO {
     private Long id;
     private String firstName;
     private String lastName;
-    private String specialization;
 
     public static TrainerDTO fromEntity(Trainer trainer) {
         if (trainer == null) {
@@ -22,8 +21,7 @@ public class TrainerDTO {
         return new TrainerDTO(
                 trainer.getId(),
                 trainer.getFirstName(),
-                trainer.getLastName(),
-                trainer.getSpecialization()
+                trainer.getLastName()
         );
     }
 }
