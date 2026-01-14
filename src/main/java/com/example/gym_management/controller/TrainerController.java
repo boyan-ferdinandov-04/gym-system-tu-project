@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/trainers")
@@ -42,12 +43,6 @@ public class TrainerController {
         return ResponseEntity.ok(trainers);
     }
 
-    @GetMapping("/specialization")
-    public ResponseEntity<List<TrainerResponse>> getTrainersBySpecialization(@RequestParam String spec) {
-        List<TrainerResponse> trainers = trainerService.getTrainersBySpecialization(spec);
-        return ResponseEntity.ok(trainers);
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<TrainerResponse> updateTrainer(
             @PathVariable Long id,
@@ -60,5 +55,27 @@ public class TrainerController {
     public ResponseEntity<Void> deleteTrainer(@PathVariable Long id) {
         trainerService.deleteTrainer(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/class-types")
+    public ResponseEntity<TrainerResponse> assignClassTypes(
+            @PathVariable Long id,
+            @RequestBody Set<Long> classTypeIds) {
+        TrainerResponse response = trainerService.assignClassTypes(id, classTypeIds);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/class-types")
+    public ResponseEntity<TrainerResponse> removeClassTypes(
+            @PathVariable Long id,
+            @RequestBody Set<Long> classTypeIds) {
+        TrainerResponse response = trainerService.removeClassTypes(id, classTypeIds);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/by-class-type/{classTypeId}")
+    public ResponseEntity<List<TrainerResponse>> getTrainersByClassType(@PathVariable Long classTypeId) {
+        List<TrainerResponse> trainers = trainerService.getTrainersByClassType(classTypeId);
+        return ResponseEntity.ok(trainers);
     }
 }
