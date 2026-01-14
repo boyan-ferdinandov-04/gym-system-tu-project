@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "class_types")
@@ -28,6 +30,9 @@ public class ClassType {
 
   @OneToMany(mappedBy = "classType", cascade = CascadeType.ALL)
   private List<ScheduledClass> scheduledClasses;
+
+  @ManyToMany(mappedBy = "classTypes")
+  private Set<Trainer> trainers = new HashSet<>();
 
   public ClassType(String name, String description) {
     this.name = name;
