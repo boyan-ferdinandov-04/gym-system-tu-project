@@ -114,6 +114,10 @@ public class BookingMapper {
         .orElseThrow(() -> new IllegalArgumentException(
             "Scheduled class not found with id: " + request.getScheduledClassId()));
 
+    return toEntity(member, scheduledClass);
+  }
+
+  public Booking toEntity(Member member, ScheduledClass scheduledClass) {
     return new Booking(
         member,
         scheduledClass,

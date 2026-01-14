@@ -44,7 +44,7 @@ public class BookingService {
 
     validateBookingEligibility(member, scheduledClass);
 
-    Booking booking = bookingMapper.toEntity(request);
+    Booking booking = bookingMapper.toEntity(member, scheduledClass);
     Booking savedBooking = bookingRepository.save(booking);
 
     return bookingMapper.toResponse(savedBooking);
