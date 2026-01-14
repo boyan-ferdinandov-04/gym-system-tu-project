@@ -2,9 +2,9 @@ package com.example.gym_management.service;
 
 import com.example.gym_management.dto.PaymentRequest;
 import com.example.gym_management.dto.PaymentResponse;
-import com.example.gym_management.entity.Member;
 import com.example.gym_management.entity.Payment;
 import com.example.gym_management.entity.Payment.PaymentStatus;
+import com.example.gym_management.mapper.PaymentMapper;
 import com.example.gym_management.repository.MemberRepository;
 import com.example.gym_management.repository.PaymentRepository;
 import jakarta.validation.Valid;
@@ -16,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,42 +24,25 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final MemberRepository memberRepository;
+    private final PaymentMapper paymentMapper;
 
     @Transactional
     public PaymentResponse createPayment(@Valid PaymentRequest request) {
-        Member member = memberRepository.findById(request.getMemberId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found with id: " + request.getMemberId()));
-
-        LocalDateTime paymentDate = request.getPaymentDate() != null ?
-                request.getPaymentDate() : LocalDateTime.now();
-
-        PaymentStatus status = request.getStatus() != null ?
-                request.getStatus() : PaymentStatus.PENDING;
-
-        Payment payment = new Payment(
-                member,
-                request.getAmount(),
-                paymentDate,
-                status
-        );
-
+        Payment payment = paymentMapper.toEntity(request);
         Payment savedPayment = paymentRepository.save(payment);
-        return PaymentResponse.fromEntity(savedPayment);
+        return paymentMapper.toResponse(savedPayment);
     }
 
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentById(Long id) {
         Payment payment = paymentRepository.findByIdWithMember(id)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found with id: " + id));
-        return PaymentResponse.fromEntity(payment);
+        return paymentMapper.toResponse(payment);
     }
 
     @Transactional(readOnly = true)
     public List<PaymentResponse> getAllPayments() {
-        return paymentRepository.findAll()
-                .stream()
-                .map(PaymentResponse::fromEntity)
-                .collect(Collectors.toList());
+        return paymentMapper.toResponseList(paymentRepository.findAll());
     }
 
     @Transactional(readOnly = true)
@@ -68,18 +50,12 @@ public class PaymentService {
         if (!memberRepository.existsById(memberId)) {
             throw new IllegalArgumentException("Member not found with id: " + memberId);
         }
-        return paymentRepository.findByMemberId(memberId)
-                .stream()
-                .map(PaymentResponse::fromEntity)
-                .collect(Collectors.toList());
+        return paymentMapper.toResponseList(paymentRepository.findByMemberId(memberId));
     }
 
     @Transactional(readOnly = true)
     public List<PaymentResponse> getPaymentsByStatus(PaymentStatus status) {
-        return paymentRepository.findByStatus(status)
-                .stream()
-                .map(PaymentResponse::fromEntity)
-                .collect(Collectors.toList());
+        return paymentMapper.toResponseList(paymentRepository.findByStatus(status));
     }
 
     @Transactional(readOnly = true)
@@ -87,10 +63,7 @@ public class PaymentService {
         if (!memberRepository.existsById(memberId)) {
             throw new IllegalArgumentException("Member not found with id: " + memberId);
         }
-        return paymentRepository.findByMemberIdAndStatus(memberId, status)
-                .stream()
-                .map(PaymentResponse::fromEntity)
-                .collect(Collectors.toList());
+        return paymentMapper.toResponseList(paymentRepository.findByMemberIdAndStatus(memberId, status));
     }
 
     @Transactional(readOnly = true)
@@ -98,10 +71,7 @@ public class PaymentService {
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Start date must be before end date");
         }
-        return paymentRepository.findByPaymentDateBetween(startDate, endDate)
-                .stream()
-                .map(PaymentResponse::fromEntity)
-                .collect(Collectors.toList());
+        return paymentMapper.toResponseList(paymentRepository.findByPaymentDateBetween(startDate, endDate));
     }
 
     @Transactional(readOnly = true)
@@ -114,10 +84,8 @@ public class PaymentService {
             throw new IllegalArgumentException("Start date must be before end date");
         }
 
-        return paymentRepository.findByMemberIdAndDateRange(memberId, startDate, endDate)
-                .stream()
-                .map(PaymentResponse::fromEntity)
-                .collect(Collectors.toList());
+        return paymentMapper.toResponseList(
+                paymentRepository.findByMemberIdAndDateRange(memberId, startDate, endDate));
     }
 
     @Transactional(readOnly = true)
@@ -158,7 +126,7 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.REFUNDED);
         Payment refunded = paymentRepository.save(payment);
-        return PaymentResponse.fromEntity(refunded);
+        return paymentMapper.toResponse(refunded);
     }
 
     @Transactional
@@ -176,7 +144,7 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.COMPLETED);
         Payment completed = paymentRepository.save(payment);
-        return PaymentResponse.fromEntity(completed);
+        return paymentMapper.toResponse(completed);
     }
 
     @Transactional
@@ -194,7 +162,7 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.FAILED);
         Payment failed = paymentRepository.save(payment);
-        return PaymentResponse.fromEntity(failed);
+        return paymentMapper.toResponse(failed);
     }
 
     @Transactional(readOnly = true)

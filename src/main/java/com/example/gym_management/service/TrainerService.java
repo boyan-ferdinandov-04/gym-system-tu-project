@@ -4,6 +4,7 @@ import com.example.gym_management.dto.TrainerRequest;
 import com.example.gym_management.dto.TrainerResponse;
 import com.example.gym_management.entity.ClassType;
 import com.example.gym_management.entity.Trainer;
+import com.example.gym_management.mapper.TrainerMapper;
 import com.example.gym_management.repository.ClassTypeRepository;
 import com.example.gym_management.repository.TrainerRepository;
 import jakarta.validation.Valid;
@@ -15,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,38 +24,25 @@ public class TrainerService {
 
   private final TrainerRepository trainerRepository;
   private final ClassTypeRepository classTypeRepository;
+  private final TrainerMapper trainerMapper;
 
   @Transactional
   public TrainerResponse createTrainer(@Valid TrainerRequest request) {
-    Trainer trainer = new Trainer(
-        request.getFirstName(),
-        request.getLastName());
-
-    if (request.getClassTypeIds() != null && !request.getClassTypeIds().isEmpty()) {
-      Set<ClassType> classTypes = new HashSet<>(classTypeRepository.findAllById(request.getClassTypeIds()));
-      if (classTypes.size() != request.getClassTypeIds().size()) {
-        throw new IllegalArgumentException("One or more class type IDs are invalid");
-      }
-      trainer.setClassTypes(classTypes);
-    }
-
+    Trainer trainer = trainerMapper.toEntity(request);
     Trainer saved = trainerRepository.save(trainer);
-    return TrainerResponse.fromEntityWithClassTypes(saved);
+    return trainerMapper.toResponseWithClassTypes(saved);
   }
 
   @Transactional(readOnly = true)
   public TrainerResponse getTrainerById(Long id) {
     Trainer trainer = trainerRepository.findByIdWithClassTypesAndScheduledClasses(id)
         .orElseThrow(() -> new IllegalArgumentException("Trainer not found with id: " + id));
-    return TrainerResponse.fromEntityWithClassTypes(trainer);
+    return trainerMapper.toResponseWithClassTypes(trainer);
   }
 
   @Transactional(readOnly = true)
   public List<TrainerResponse> getAllTrainers() {
-    return trainerRepository.findAll()
-        .stream()
-        .map(TrainerResponse::fromEntityWithoutCount)
-        .collect(Collectors.toList());
+    return trainerMapper.toResponseListWithoutCount(trainerRepository.findAll());
   }
 
   @Transactional(readOnly = true)
@@ -63,10 +50,7 @@ public class TrainerService {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Search name cannot be empty");
     }
-    return trainerRepository.searchByName(name)
-        .stream()
-        .map(TrainerResponse::fromEntityWithoutCount)
-        .collect(Collectors.toList());
+    return trainerMapper.toResponseListWithoutCount(trainerRepository.searchByName(name));
   }
 
   @Transactional
@@ -74,23 +58,10 @@ public class TrainerService {
     Trainer existingTrainer = trainerRepository.findByIdWithClassTypes(id)
         .orElseThrow(() -> new IllegalArgumentException("Trainer not found with id: " + id));
 
-    existingTrainer.setFirstName(request.getFirstName());
-    existingTrainer.setLastName(request.getLastName());
-
-    if (request.getClassTypeIds() != null) {
-      if (request.getClassTypeIds().isEmpty()) {
-        existingTrainer.getClassTypes().clear();
-      } else {
-        Set<ClassType> classTypes = new HashSet<>(classTypeRepository.findAllById(request.getClassTypeIds()));
-        if (classTypes.size() != request.getClassTypeIds().size()) {
-          throw new IllegalArgumentException("One or more class type IDs are invalid");
-        }
-        existingTrainer.setClassTypes(classTypes);
-      }
-    }
+    trainerMapper.updateEntity(request, existingTrainer);
 
     Trainer updated = trainerRepository.save(existingTrainer);
-    return TrainerResponse.fromEntityWithClassTypes(updated);
+    return trainerMapper.toResponseWithClassTypes(updated);
   }
 
   @Transactional
@@ -122,7 +93,7 @@ public class TrainerService {
 
     trainer.getClassTypes().addAll(classTypes);
     Trainer updated = trainerRepository.save(trainer);
-    return TrainerResponse.fromEntityWithClassTypes(updated);
+    return trainerMapper.toResponseWithClassTypes(updated);
   }
 
   @Transactional
@@ -136,7 +107,7 @@ public class TrainerService {
 
     trainer.getClassTypes().removeIf(ct -> classTypeIds.contains(ct.getId()));
     Trainer updated = trainerRepository.save(trainer);
-    return TrainerResponse.fromEntityWithClassTypes(updated);
+    return trainerMapper.toResponseWithClassTypes(updated);
   }
 
   @Transactional(readOnly = true)
@@ -144,9 +115,6 @@ public class TrainerService {
     if (!classTypeRepository.existsById(classTypeId)) {
       throw new IllegalArgumentException("Class type not found with id: " + classTypeId);
     }
-    return trainerRepository.findByClassTypeId(classTypeId)
-        .stream()
-        .map(TrainerResponse::fromEntityWithoutCount)
-        .collect(Collectors.toList());
+    return trainerMapper.toResponseListWithoutCount(trainerRepository.findByClassTypeId(classTypeId));
   }
 }

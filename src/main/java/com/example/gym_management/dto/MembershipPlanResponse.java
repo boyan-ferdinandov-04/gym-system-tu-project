@@ -15,13 +15,4 @@ public class MembershipPlanResponse {
   private String tierName;
   private BigDecimal price;
   private Integer durationDays;
-
-  public static MembershipPlanResponse fromEntity(com.example.gym_management.entity.MembershipPlan entity) {
-    return new MembershipPlanResponse(
-        entity.getId(),
-        entity.getTierName(),
-        entity.getPrice(),
-        entity.getDurationDays()
-    );
-  }
 }
