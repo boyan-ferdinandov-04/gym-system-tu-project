@@ -3,6 +3,7 @@ package com.example.gym_management.service;
 import com.example.gym_management.dto.RoomDTO;
 import com.example.gym_management.dto.RoomRequest;
 import com.example.gym_management.entity.Room;
+import com.example.gym_management.mapper.RoomMapper;
 import com.example.gym_management.repository.RoomRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,31 +19,25 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final RoomMapper roomMapper;
 
     @Transactional
     public RoomDTO createRoom(@Valid RoomRequest request) {
-        Room room = new Room(
-                request.getRoomName(),
-                request.getCapacity(),
-                request.getHasEquipment()
-        );
+        Room room = roomMapper.toEntity(request);
         Room saved = roomRepository.save(room);
-        return RoomDTO.fromEntity(saved);
+        return roomMapper.toDto(saved);
     }
 
     @Transactional(readOnly = true)
     public RoomDTO getRoomById(Long id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found with id: " + id));
-        return RoomDTO.fromEntity(room);
+        return roomMapper.toDto(room);
     }
 
     @Transactional(readOnly = true)
     public List<RoomDTO> getAllRooms() {
-        return roomRepository.findAll()
-                .stream()
-                .map(RoomDTO::fromEntity)
-                .collect(Collectors.toList());
+        return roomMapper.toDtoList(roomRepository.findAll());
     }
 
     @Transactional
@@ -51,12 +45,10 @@ public class RoomService {
         Room existingRoom = roomRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found with id: " + id));
 
-        existingRoom.setRoomName(request.getRoomName());
-        existingRoom.setCapacity(request.getCapacity());
-        existingRoom.setHasEquipment(request.getHasEquipment());
+        roomMapper.updateEntity(request, existingRoom);
 
         Room updated = roomRepository.save(existingRoom);
-        return RoomDTO.fromEntity(updated);
+        return roomMapper.toDto(updated);
     }
 
     @Transactional

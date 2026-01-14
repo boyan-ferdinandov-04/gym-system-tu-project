@@ -8,6 +8,7 @@ import com.example.gym_management.entity.Booking;
 import com.example.gym_management.entity.Booking.BookingStatus;
 import com.example.gym_management.entity.Member;
 import com.example.gym_management.entity.ScheduledClass;
+import com.example.gym_management.mapper.BookingMapper;
 import com.example.gym_management.repository.BookingRepository;
 import com.example.gym_management.repository.MemberRepository;
 import com.example.gym_management.repository.ScheduledClassRepository;
@@ -29,6 +30,7 @@ public class BookingService {
   private final BookingRepository bookingRepository;
   private final MemberRepository memberRepository;
   private final ScheduledClassRepository scheduledClassRepository;
+  private final BookingMapper bookingMapper;
 
   @Transactional
   public BookingResponse createBooking(@Valid BookingRequest request) {
@@ -42,10 +44,10 @@ public class BookingService {
 
     validateBookingEligibility(member, scheduledClass);
 
-    Booking booking = new Booking(member, scheduledClass, BookingStatus.ENROLLED);
+    Booking booking = bookingMapper.toEntity(request);
     Booking savedBooking = bookingRepository.save(booking);
 
-    return BookingResponse.fromEntity(savedBooking);
+    return bookingMapper.toResponse(savedBooking);
   }
 
   private void validateBookingEligibility(Member member, ScheduledClass scheduledClass) {
@@ -84,15 +86,12 @@ public class BookingService {
   public BookingResponse getBookingById(Long id) {
     Booking booking = bookingRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Booking not found with id: " + id));
-    return BookingResponse.fromEntity(booking);
+    return bookingMapper.toResponse(booking);
   }
 
   @Transactional(readOnly = true)
   public List<BookingResponse> getAllBookings() {
-    return bookingRepository.findAll()
-        .stream()
-        .map(BookingResponse::fromEntity)
-        .collect(Collectors.toList());
+    return bookingMapper.toResponseList(bookingRepository.findAll());
   }
 
   @Transactional
@@ -114,7 +113,7 @@ public class BookingService {
     booking.setStatus(BookingStatus.CANCELLED);
     Booking updatedBooking = bookingRepository.save(booking);
 
-    return BookingResponse.fromEntity(updatedBooking);
+    return bookingMapper.toResponse(updatedBooking);
   }
 
   @Transactional
@@ -131,7 +130,7 @@ public class BookingService {
     booking.setStatus(BookingStatus.ENROLLED);
     Booking updatedBooking = bookingRepository.save(booking);
 
-    return BookingResponse.fromEntity(updatedBooking);
+    return bookingMapper.toResponse(updatedBooking);
   }
 
   @Transactional
@@ -154,7 +153,7 @@ public class BookingService {
 
     return bookingRepository.findByMemberId(memberId)
         .stream()
-        .map(BookingResponse::fromEntityCompact)
+        .map(bookingMapper::toCompactResponse)
         .collect(Collectors.toList());
   }
 
@@ -165,7 +164,7 @@ public class BookingService {
 
     return bookingRepository.findByMemberIdAndStatus(memberId, BookingStatus.ENROLLED)
         .stream()
-        .map(BookingResponse::fromEntityCompact)
+        .map(bookingMapper::toCompactResponse)
         .collect(Collectors.toList());
   }
 
@@ -176,7 +175,7 @@ public class BookingService {
 
     return bookingRepository.findUpcomingBookingsByMemberId(memberId, LocalDateTime.now())
         .stream()
-        .map(BookingResponse::fromEntityCompact)
+        .map(bookingMapper::toCompactResponse)
         .collect(Collectors.toList());
   }
 
@@ -187,7 +186,7 @@ public class BookingService {
 
     return bookingRepository.findPastBookingsByMemberId(memberId, LocalDateTime.now())
         .stream()
-        .map(BookingResponse::fromEntityCompact)
+        .map(bookingMapper::toCompactResponse)
         .collect(Collectors.toList());
   }
 
@@ -197,18 +196,12 @@ public class BookingService {
         .orElseThrow(() -> new IllegalArgumentException(
             "Scheduled class not found with id: " + scheduledClassId));
 
-    return bookingRepository.findByScheduledClassId(scheduledClassId)
-        .stream()
-        .map(BookingResponse::fromEntity)
-        .collect(Collectors.toList());
+    return bookingMapper.toResponseList(bookingRepository.findByScheduledClassId(scheduledClassId));
   }
 
   @Transactional(readOnly = true)
   public List<BookingResponse> getBookingsByStatus(BookingStatus status) {
-    return bookingRepository.findByStatus(status)
-        .stream()
-        .map(BookingResponse::fromEntity)
-        .collect(Collectors.toList());
+    return bookingMapper.toResponseList(bookingRepository.findByStatus(status));
   }
 
   @Transactional(readOnly = true)
@@ -220,10 +213,7 @@ public class BookingService {
       throw new IllegalArgumentException("Start date must be before end date");
     }
 
-    return bookingRepository.findBookingsByDateRange(startDate, endDate)
-        .stream()
-        .map(BookingResponse::fromEntity)
-        .collect(Collectors.toList());
+    return bookingMapper.toResponseList(bookingRepository.findBookingsByDateRange(startDate, endDate));
   }
 
   @Transactional(readOnly = true)
