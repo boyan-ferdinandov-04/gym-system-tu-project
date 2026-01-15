@@ -36,6 +36,12 @@ public class Trainer {
   @JoinTable(name = "trainer_class_types", joinColumns = @JoinColumn(name = "trainer_id"), inverseJoinColumns = @JoinColumn(name = "class_type_id"))
   private Set<ClassType> classTypes = new HashSet<>();
 
+  @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TrainerAvailability> availabilities = new ArrayList<>();
+
+  @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TrainerTimeOff> timeOffs = new ArrayList<>();
+
   public Trainer(String firstName, String lastName) {
     this.firstName = firstName;
     this.lastName = lastName;
