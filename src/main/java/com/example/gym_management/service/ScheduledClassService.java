@@ -26,9 +26,11 @@ public class ScheduledClassService {
   private final TrainerRepository trainerRepository;
   private final RoomRepository roomRepository;
   private final ScheduledClassMapper scheduledClassMapper;
+  private final TrainerAvailabilityService trainerAvailabilityService;
 
   @Transactional
   public ScheduledClassResponse createScheduledClass(@Valid ScheduledClassRequest request) {
+    trainerAvailabilityService.validateTrainerAvailabilityForClass(request.getTrainerId(), request.getStartTime());
     validateSchedulingConflicts(request.getTrainerId(), request.getRoomId(), request.getStartTime(), null);
 
     ScheduledClass scheduledClass = scheduledClassMapper.toEntity(request);
@@ -101,6 +103,7 @@ public class ScheduledClassService {
     ScheduledClass existingClass = scheduledClassRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Scheduled class not found with ID: " + id));
 
+    trainerAvailabilityService.validateTrainerAvailabilityForClass(request.getTrainerId(), request.getStartTime());
     validateSchedulingConflicts(request.getTrainerId(), request.getRoomId(), request.getStartTime(), id);
 
     scheduledClassMapper.updateEntity(request, existingClass);
