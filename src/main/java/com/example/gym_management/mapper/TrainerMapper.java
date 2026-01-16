@@ -1,12 +1,15 @@
 package com.example.gym_management.mapper;
 
 import com.example.gym_management.dto.ClassTypeDTO;
+import com.example.gym_management.dto.GymDTO;
 import com.example.gym_management.dto.TrainerDTO;
 import com.example.gym_management.dto.TrainerRequest;
 import com.example.gym_management.dto.TrainerResponse;
 import com.example.gym_management.entity.ClassType;
+import com.example.gym_management.entity.Gym;
 import com.example.gym_management.entity.Trainer;
 import com.example.gym_management.repository.ClassTypeRepository;
+import com.example.gym_management.repository.GymRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class TrainerMapper {
 
     private final ClassTypeRepository classTypeRepository;
+    private final GymRepository gymRepository;
     private final ClassTypeMapper classTypeMapper;
 
     public TrainerDTO toSimpleDto(Trainer trainer) {
@@ -39,6 +43,7 @@ public class TrainerMapper {
         }
         return new TrainerResponse(
                 trainer.getId(),
+                toGymDto(trainer.getGym()),
                 trainer.getFirstName(),
                 trainer.getLastName(),
                 calculateScheduledClassCount(trainer),
@@ -59,6 +64,7 @@ public class TrainerMapper {
 
         return new TrainerResponse(
                 trainer.getId(),
+                toGymDto(trainer.getGym()),
                 trainer.getFirstName(),
                 trainer.getLastName(),
                 calculateScheduledClassCount(trainer),
@@ -72,6 +78,7 @@ public class TrainerMapper {
         }
         return new TrainerResponse(
                 trainer.getId(),
+                toGymDto(trainer.getGym()),
                 trainer.getFirstName(),
                 trainer.getLastName(),
                 null,
@@ -86,10 +93,27 @@ public class TrainerMapper {
     }
 
     public Trainer toEntity(TrainerRequest request) {
-        Trainer trainer = new Trainer(
-                request.getFirstName(),
-                request.getLastName()
-        );
+        Gym gym = gymRepository.findById(request.getGymId())
+                .orElseThrow(() -> new IllegalArgumentException("Gym not found with id: " + request.getGymId()));
+
+        Trainer trainer = new Trainer();
+        trainer.setGym(gym);
+        trainer.setFirstName(request.getFirstName());
+        trainer.setLastName(request.getLastName());
+
+        if (request.getClassTypeIds() != null && !request.getClassTypeIds().isEmpty()) {
+            Set<ClassType> classTypes = resolveClassTypes(request.getClassTypeIds());
+            trainer.setClassTypes(classTypes);
+        }
+
+        return trainer;
+    }
+
+    public Trainer toEntityWithGym(TrainerRequest request, Gym gym) {
+        Trainer trainer = new Trainer();
+        trainer.setGym(gym);
+        trainer.setFirstName(request.getFirstName());
+        trainer.setLastName(request.getLastName());
 
         if (request.getClassTypeIds() != null && !request.getClassTypeIds().isEmpty()) {
             Set<ClassType> classTypes = resolveClassTypes(request.getClassTypeIds());
@@ -100,6 +124,11 @@ public class TrainerMapper {
     }
 
     public void updateEntity(TrainerRequest request, Trainer trainer) {
+        if (request.getGymId() != null && !request.getGymId().equals(trainer.getGym().getId())) {
+            Gym gym = gymRepository.findById(request.getGymId())
+                    .orElseThrow(() -> new IllegalArgumentException("Gym not found with id: " + request.getGymId()));
+            trainer.setGym(gym);
+        }
         trainer.setFirstName(request.getFirstName());
         trainer.setLastName(request.getLastName());
 
@@ -111,6 +140,13 @@ public class TrainerMapper {
                 trainer.setClassTypes(classTypes);
             }
         }
+    }
+
+    private GymDTO toGymDto(Gym gym) {
+        if (gym == null) {
+            return null;
+        }
+        return new GymDTO(gym.getId(), gym.getName());
     }
 
     private Integer calculateScheduledClassCount(Trainer trainer) {
