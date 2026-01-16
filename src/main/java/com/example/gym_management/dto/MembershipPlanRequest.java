@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -25,4 +26,7 @@ public class MembershipPlanRequest {
   @Min(value = 1, message = "Duration must be at least 1 day")
   @Max(value = 3650, message = "Duration cannot exceed 3650 days (10 years)")
   private Integer durationDays;
+
+  @NotEmpty(message = "At least one accessible gym is required")
+  private Set<Long> accessibleGymIds;
 }
