@@ -12,42 +12,48 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "members")
+@Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Member {
+public class User {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "first_name", nullable = false, length = 50)
-  private String firstName;
+  @Column(nullable = false, unique = true, length = 100)
+  private String username;
 
-  @Column(name = "last_name", nullable = false, length = 50)
-  private String lastName;
+  @Column(nullable = false)
+  private String password;
 
   @Column(nullable = false, unique = true, length = 255)
   private String email;
 
+  @Column(name = "first_name", length = 50)
+  private String firstName;
+
+  @Column(name = "last_name", length = 50)
+  private String lastName;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private UserRole role;
+
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "membership_plan_id")
-  private MembershipPlan membershipPlan;
+  @JoinColumn(name = "gym_id")
+  private Gym gym;
 
-  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-  private List<Booking> bookings;
-
-  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-  private List<Payment> payments;
+  @Column(nullable = false)
+  private Boolean enabled = true;
 
   @CreatedDate
-  @Column(name = "created_at", updatable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   @LastModifiedDate
@@ -62,10 +68,15 @@ public class Member {
   @Column(name = "modified_by", length = 100)
   private String modifiedBy;
 
-  public Member(String firstName, String lastName, String email, MembershipPlan membershipPlan) {
+  public User(String username, String password, String email, String firstName,
+              String lastName, UserRole role, Gym gym) {
+    this.username = username;
+    this.password = password;
+    this.email = email;
     this.firstName = firstName;
     this.lastName = lastName;
-    this.email = email;
-    this.membershipPlan = membershipPlan;
+    this.role = role;
+    this.gym = gym;
+    this.enabled = true;
   }
 }
