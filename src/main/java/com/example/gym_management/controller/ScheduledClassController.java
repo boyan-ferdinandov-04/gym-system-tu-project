@@ -36,8 +36,15 @@ public class ScheduledClassController {
   }
 
   @GetMapping
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<ScheduledClassResponse>> getAllScheduledClasses() {
     List<ScheduledClassResponse> responses = scheduledClassService.getAllScheduledClasses();
+    return ResponseEntity.ok(responses);
+  }
+
+  @GetMapping("/gym/{gymId}")
+  public ResponseEntity<List<ScheduledClassResponse>> getScheduledClassesByGymId(@PathVariable Long gymId) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getScheduledClassesByGymId(gymId);
     return ResponseEntity.ok(responses);
   }
 
@@ -47,9 +54,21 @@ public class ScheduledClassController {
     return ResponseEntity.ok(responses);
   }
 
+  @GetMapping("/gym/{gymId}/upcoming")
+  public ResponseEntity<List<ScheduledClassResponse>> getUpcomingClassesByGymId(@PathVariable Long gymId) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getUpcomingClassesByGymId(gymId);
+    return ResponseEntity.ok(responses);
+  }
+
   @GetMapping("/available")
   public ResponseEntity<List<ScheduledClassResponse>> getAvailableClasses() {
     List<ScheduledClassResponse> responses = scheduledClassService.getAvailableClasses();
+    return ResponseEntity.ok(responses);
+  }
+
+  @GetMapping("/gym/{gymId}/available")
+  public ResponseEntity<List<ScheduledClassResponse>> getAvailableClassesByGymId(@PathVariable Long gymId) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getAvailableClassesByGymId(gymId);
     return ResponseEntity.ok(responses);
   }
 
@@ -59,9 +78,25 @@ public class ScheduledClassController {
     return ResponseEntity.ok(responses);
   }
 
+  @GetMapping("/gym/{gymId}/by-trainer/{trainerId}")
+  public ResponseEntity<List<ScheduledClassResponse>> getClassesByTrainerAndGymId(
+      @PathVariable Long gymId,
+      @PathVariable Long trainerId) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getClassesByTrainerAndGymId(trainerId, gymId);
+    return ResponseEntity.ok(responses);
+  }
+
   @GetMapping("/by-room/{roomId}")
   public ResponseEntity<List<ScheduledClassResponse>> getClassesByRoom(@PathVariable Long roomId) {
     List<ScheduledClassResponse> responses = scheduledClassService.getClassesByRoom(roomId);
+    return ResponseEntity.ok(responses);
+  }
+
+  @GetMapping("/gym/{gymId}/by-room/{roomId}")
+  public ResponseEntity<List<ScheduledClassResponse>> getClassesByRoomAndGymId(
+      @PathVariable Long gymId,
+      @PathVariable Long roomId) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getClassesByRoomAndGymId(roomId, gymId);
     return ResponseEntity.ok(responses);
   }
 
@@ -71,11 +106,28 @@ public class ScheduledClassController {
     return ResponseEntity.ok(responses);
   }
 
+  @GetMapping("/gym/{gymId}/by-type/{classTypeId}")
+  public ResponseEntity<List<ScheduledClassResponse>> getClassesByTypeAndGymId(
+      @PathVariable Long gymId,
+      @PathVariable Long classTypeId) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getClassesByTypeAndGymId(classTypeId, gymId);
+    return ResponseEntity.ok(responses);
+  }
+
   @GetMapping("/by-date-range")
   public ResponseEntity<List<ScheduledClassResponse>> getClassesByDateRange(
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
     List<ScheduledClassResponse> responses = scheduledClassService.getClassesByDateRange(startDate, endDate);
+    return ResponseEntity.ok(responses);
+  }
+
+  @GetMapping("/gym/{gymId}/by-date-range")
+  public ResponseEntity<List<ScheduledClassResponse>> getClassesByDateRangeAndGymId(
+      @PathVariable Long gymId,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    List<ScheduledClassResponse> responses = scheduledClassService.getClassesByDateRangeAndGymId(gymId, startDate, endDate);
     return ResponseEntity.ok(responses);
   }
 

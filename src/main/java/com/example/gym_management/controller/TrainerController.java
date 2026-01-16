@@ -34,14 +34,29 @@ public class TrainerController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TrainerResponse>> getAllTrainers() {
         List<TrainerResponse> trainers = trainerService.getAllTrainers();
+        return ResponseEntity.ok(trainers);
+    }
+
+    @GetMapping("/gym/{gymId}")
+    public ResponseEntity<List<TrainerResponse>> getTrainersByGymId(@PathVariable Long gymId) {
+        List<TrainerResponse> trainers = trainerService.getTrainersByGymId(gymId);
         return ResponseEntity.ok(trainers);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<TrainerResponse>> searchTrainersByName(@RequestParam String name) {
         List<TrainerResponse> trainers = trainerService.searchTrainersByName(name);
+        return ResponseEntity.ok(trainers);
+    }
+
+    @GetMapping("/gym/{gymId}/search")
+    public ResponseEntity<List<TrainerResponse>> searchTrainersByNameAndGymId(
+            @PathVariable Long gymId,
+            @RequestParam String name) {
+        List<TrainerResponse> trainers = trainerService.searchTrainersByNameAndGymId(name, gymId);
         return ResponseEntity.ok(trainers);
     }
 
@@ -82,6 +97,14 @@ public class TrainerController {
     @GetMapping("/by-class-type/{classTypeId}")
     public ResponseEntity<List<TrainerResponse>> getTrainersByClassType(@PathVariable Long classTypeId) {
         List<TrainerResponse> trainers = trainerService.getTrainersByClassType(classTypeId);
+        return ResponseEntity.ok(trainers);
+    }
+
+    @GetMapping("/gym/{gymId}/by-class-type/{classTypeId}")
+    public ResponseEntity<List<TrainerResponse>> getTrainersByClassTypeAndGymId(
+            @PathVariable Long gymId,
+            @PathVariable Long classTypeId) {
+        List<TrainerResponse> trainers = trainerService.getTrainersByClassTypeAndGymId(classTypeId, gymId);
         return ResponseEntity.ok(trainers);
     }
 }
