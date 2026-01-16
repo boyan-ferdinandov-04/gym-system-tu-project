@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class MembershipController {
   private final MembershipService membershipService;
 
   @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<MembershipPlanResponse> createMembershipPlan(
       @Valid @RequestBody MembershipPlanRequest request) {
     MembershipPlanResponse response = membershipService.createMembershipPlan(request);
@@ -58,6 +60,7 @@ public class MembershipController {
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<MembershipPlanResponse> updateMembershipPlan(
       @PathVariable Long id,
       @Valid @RequestBody MembershipPlanRequest request) {
@@ -66,6 +69,7 @@ public class MembershipController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Void> deleteMembershipPlan(@PathVariable Long id) {
     membershipService.deleteMembershipPlan(id);
     return ResponseEntity.noContent().build();

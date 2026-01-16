@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class BookingController {
   private final BookingService bookingService;
 
   @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
     BookingResponse response = bookingService.createBooking(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -43,18 +45,21 @@ public class BookingController {
   }
 
   @PatchMapping("/{id}/cancel")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id) {
     BookingResponse response = bookingService.cancelBooking(id);
     return ResponseEntity.ok(response);
   }
 
   @PatchMapping("/{id}/re-enroll")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<BookingResponse> reEnrollBooking(@PathVariable Long id) {
     BookingResponse response = bookingService.reEnrollBooking(id);
     return ResponseEntity.ok(response);
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
     bookingService.deleteBooking(id);
     return ResponseEntity.noContent().build();
@@ -120,6 +125,7 @@ public class BookingController {
   }
 
   @PostMapping("/class/{scheduledClassId}/cancel-all")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Map<String, Object>> cancelAllBookingsForClass(
       @PathVariable Long scheduledClassId) {
     int cancelledCount = bookingService.cancelAllBookingsForClass(scheduledClassId);
