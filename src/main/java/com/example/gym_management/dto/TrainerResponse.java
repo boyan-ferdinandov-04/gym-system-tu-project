@@ -12,6 +12,7 @@ import java.util.List;
 public class TrainerResponse {
 
     private Long id;
+    private GymDTO gym;
     private String firstName;
     private String lastName;
     private Integer scheduledClassCount;

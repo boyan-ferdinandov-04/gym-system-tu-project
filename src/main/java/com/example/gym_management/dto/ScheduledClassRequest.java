@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ScheduledClassRequest {
 
+    @NotNull(message = "Gym ID is required")
+    private Long gymId;
+
     @NotNull(message = "Class type ID is required")
     private Long classTypeId;
 

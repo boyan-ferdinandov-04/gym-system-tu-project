@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RoomRequest {
 
+    @NotNull(message = "Gym ID is required")
+    private Long gymId;
+
     @NotBlank(message = "Room name is required")
     @Size(max = 100, message = "Room name cannot exceed 100 characters")
     private String roomName;
