@@ -1,5 +1,6 @@
 package com.example.gym_management.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Trainer availability slot request")
 public class TrainerAvailabilityRequest {
 
     @NotNull(message = "Day of week is required")
