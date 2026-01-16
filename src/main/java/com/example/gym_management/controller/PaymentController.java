@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ public class PaymentController {
   private final PaymentService paymentService;
 
   @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
     PaymentResponse response = paymentService.createPayment(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -78,36 +80,42 @@ public class PaymentController {
   }
 
   @PatchMapping("/{id}/complete")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<PaymentResponse> markPaymentAsCompleted(@PathVariable Long id) {
     PaymentResponse response = paymentService.markPaymentAsCompleted(id);
     return ResponseEntity.ok(response);
   }
 
   @PatchMapping("/{id}/fail")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<PaymentResponse> markPaymentAsFailed(@PathVariable Long id) {
     PaymentResponse response = paymentService.markPaymentAsFailed(id);
     return ResponseEntity.ok(response);
   }
 
   @PatchMapping("/{id}/refund")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<PaymentResponse> refundPayment(@PathVariable Long id) {
     PaymentResponse response = paymentService.refundPayment(id);
     return ResponseEntity.ok(response);
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deletePayment(@PathVariable Long id) {
     paymentService.deletePayment(id);
     return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/revenue/total")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<BigDecimal> getTotalRevenue() {
     BigDecimal total = paymentService.getTotalRevenue();
     return ResponseEntity.ok(total);
   }
 
   @GetMapping("/revenue/status/{status}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<BigDecimal> getTotalRevenueByStatus(@PathVariable PaymentStatus status) {
     BigDecimal total = paymentService.getTotalRevenueByStatus(status);
     return ResponseEntity.ok(total);

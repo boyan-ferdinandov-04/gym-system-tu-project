@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public class ScheduledClassController {
   private final ScheduledClassService scheduledClassService;
 
   @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<ScheduledClassResponse> createScheduledClass(
       @Valid @RequestBody ScheduledClassRequest request) {
     ScheduledClassResponse response = scheduledClassService.createScheduledClass(request);
@@ -78,6 +80,7 @@ public class ScheduledClassController {
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<ScheduledClassResponse> updateScheduledClass(
       @PathVariable Long id,
       @Valid @RequestBody ScheduledClassRequest request) {
@@ -86,6 +89,7 @@ public class ScheduledClassController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Void> deleteScheduledClass(@PathVariable Long id) {
     scheduledClassService.deleteScheduledClass(id);
     return ResponseEntity.noContent().build();

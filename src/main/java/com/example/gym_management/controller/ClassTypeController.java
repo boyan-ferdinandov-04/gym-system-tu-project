@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class ClassTypeController {
   private final ClassTypeService classTypeService;
 
   @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<ClassTypeResponse> createClassType(@Valid @RequestBody ClassTypeRequest request) {
     ClassTypeResponse response = classTypeService.createClassType(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -43,6 +45,7 @@ public class ClassTypeController {
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<ClassTypeResponse> updateClassType(
       @PathVariable Long id,
       @Valid @RequestBody ClassTypeRequest request) {
@@ -51,6 +54,7 @@ public class ClassTypeController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Void> deleteClassType(@PathVariable Long id) {
     classTypeService.deleteClassType(id);
     return ResponseEntity.noContent().build();

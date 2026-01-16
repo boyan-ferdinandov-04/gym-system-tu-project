@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<MemberResponse> createMember(@Valid @RequestBody MemberRequest request) {
         MemberResponse response = memberService.createMember(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -37,6 +39,7 @@ public class MemberController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<MemberResponse> updateMember(
             @PathVariable Long id,
             @Valid @RequestBody MemberRequest request) {
@@ -45,6 +48,7 @@ public class MemberController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteMember(@PathVariable Long id) {
         memberService.deleteMember(id);
         return ResponseEntity.noContent().build();
@@ -70,6 +74,7 @@ public class MemberController {
     }
 
     @PatchMapping("/{memberId}/assign-plan/{membershipPlanId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<MemberResponse> assignMembershipPlan(
             @PathVariable Long memberId,
             @PathVariable Long membershipPlanId) {
@@ -78,6 +83,7 @@ public class MemberController {
     }
 
     @PatchMapping("/{memberId}/remove-plan")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<MemberResponse> removeMembershipPlan(@PathVariable Long memberId) {
         MemberResponse response = memberService.removeMembershipPlan(memberId);
         return ResponseEntity.ok(response);

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class TrainerController {
     private final TrainerService trainerService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerResponse> createTrainer(@Valid @RequestBody TrainerRequest request) {
         TrainerResponse response = trainerService.createTrainer(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -44,6 +46,7 @@ public class TrainerController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerResponse> updateTrainer(
             @PathVariable Long id,
             @Valid @RequestBody TrainerRequest request) {
@@ -52,12 +55,14 @@ public class TrainerController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteTrainer(@PathVariable Long id) {
         trainerService.deleteTrainer(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/class-types")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerResponse> assignClassTypes(
             @PathVariable Long id,
             @RequestBody Set<Long> classTypeIds) {
@@ -66,6 +71,7 @@ public class TrainerController {
     }
 
     @DeleteMapping("/{id}/class-types")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerResponse> removeClassTypes(
             @PathVariable Long id,
             @RequestBody Set<Long> classTypeIds) {

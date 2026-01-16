@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ public class TrainerAvailabilityController {
     }
 
     @PostMapping("/{id}/availability")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerAvailabilityResponse> createAvailability(
             @PathVariable Long id,
             @Valid @RequestBody TrainerAvailabilityRequest request) {
@@ -43,6 +45,7 @@ public class TrainerAvailabilityController {
     }
 
     @PutMapping("/{id}/availability/{slotId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerAvailabilityResponse> updateAvailability(
             @PathVariable Long id,
             @PathVariable Long slotId,
@@ -52,6 +55,7 @@ public class TrainerAvailabilityController {
     }
 
     @DeleteMapping("/{id}/availability/{slotId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteAvailability(
             @PathVariable Long id,
             @PathVariable Long slotId) {
@@ -72,6 +76,7 @@ public class TrainerAvailabilityController {
     }
 
     @PostMapping("/{id}/time-off")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainerTimeOffResponse> createTimeOff(
             @PathVariable Long id,
             @Valid @RequestBody TrainerTimeOffRequest request) {
@@ -80,6 +85,7 @@ public class TrainerAvailabilityController {
     }
 
     @DeleteMapping("/{id}/time-off/{timeOffId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteTimeOff(
             @PathVariable Long id,
             @PathVariable Long timeOffId) {
