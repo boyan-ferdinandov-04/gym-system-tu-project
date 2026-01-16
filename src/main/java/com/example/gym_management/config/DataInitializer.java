@@ -12,7 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("local")
+@Profile({"local", "dev"})
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
