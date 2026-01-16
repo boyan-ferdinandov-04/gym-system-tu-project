@@ -12,6 +12,14 @@ import java.util.Optional;
 @Repository
 public interface TrainerRepository extends JpaRepository<Trainer, Long> {
 
+    List<Trainer> findByGymId(Long gymId);
+
+    @Query("SELECT t FROM Trainer t WHERE t.gym.id = :gymId AND t.id = :trainerId")
+    Optional<Trainer> findByIdAndGymId(@Param("trainerId") Long trainerId, @Param("gymId") Long gymId);
+
+    @Query("SELECT t FROM Trainer t WHERE t.gym.id = :gymId AND (LOWER(t.firstName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(t.lastName) LIKE LOWER(CONCAT('%', :name, '%')))")
+    List<Trainer> searchByNameAndGymId(@Param("name") String name, @Param("gymId") Long gymId);
+
     @Query("SELECT t FROM Trainer t WHERE LOWER(t.firstName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(t.lastName) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Trainer> searchByName(@Param("name") String name);
 
@@ -26,4 +34,7 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
 
     @Query("SELECT t FROM Trainer t JOIN t.classTypes ct WHERE ct.id = :classTypeId")
     List<Trainer> findByClassTypeId(@Param("classTypeId") Long classTypeId);
+
+    @Query("SELECT t FROM Trainer t JOIN t.classTypes ct WHERE ct.id = :classTypeId AND t.gym.id = :gymId")
+    List<Trainer> findByClassTypeIdAndGymId(@Param("classTypeId") Long classTypeId, @Param("gymId") Long gymId);
 }
