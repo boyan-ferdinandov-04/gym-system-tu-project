@@ -23,6 +23,10 @@ public class Trainer {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "gym_id", nullable = false)
+  private Gym gym;
+
   @Column(name = "first_name", nullable = false, length = 50)
   private String firstName;
 
@@ -41,6 +45,12 @@ public class Trainer {
 
   @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TrainerTimeOff> timeOffs = new ArrayList<>();
+
+  public Trainer(Gym gym, String firstName, String lastName) {
+    this.gym = gym;
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
 
   public Trainer(String firstName, String lastName) {
     this.firstName = firstName;

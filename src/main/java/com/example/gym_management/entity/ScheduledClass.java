@@ -22,6 +22,10 @@ public class ScheduledClass {
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "gym_id", nullable = false)
+  private Gym gym;
+
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "class_type_id", nullable = false)
   private ClassType classType;
 
@@ -38,6 +42,14 @@ public class ScheduledClass {
 
   @OneToMany(mappedBy = "scheduledClass", cascade = CascadeType.ALL)
   private List<Booking> bookings;
+
+  public ScheduledClass(Gym gym, ClassType classType, Trainer trainer, Room room, LocalDateTime startTime) {
+    this.gym = gym;
+    this.classType = classType;
+    this.trainer = trainer;
+    this.room = room;
+    this.startTime = startTime;
+  }
 
   public ScheduledClass(ClassType classType, Trainer trainer, Room room, LocalDateTime startTime) {
     this.classType = classType;
