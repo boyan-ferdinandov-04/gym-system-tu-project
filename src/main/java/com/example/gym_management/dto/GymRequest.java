@@ -1,6 +1,7 @@
 package com.example.gym_management.dto;
 
 import com.example.gym_management.entity.GymStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Gym creation/update request")
 public class GymRequest {
 
     @NotBlank(message = "Gym name is required")

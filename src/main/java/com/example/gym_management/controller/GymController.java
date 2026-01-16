@@ -7,6 +7,14 @@ import com.example.gym_management.dto.ScheduledClassResponse;
 import com.example.gym_management.dto.TrainerResponse;
 import com.example.gym_management.entity.GymStatus;
 import com.example.gym_management.service.GymService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,12 +27,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/gyms")
 @RequiredArgsConstructor
+@Tag(name = "Gyms", description = "Gym location management operations")
 public class GymController {
 
     private final GymService gymService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create a new gym", description = "Creates a new gym location. Requires ADMIN role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Gym created successfully",
+                    content = @Content(schema = @Schema(implementation = GymResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required", content = @Content)
+    })
     public ResponseEntity<GymResponse> createGym(@Valid @RequestBody GymRequest request) {
         GymResponse response = gymService.createGym(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -32,13 +48,27 @@ public class GymController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @securityService.isUserInGym(#id)")
-    public ResponseEntity<GymResponse> getGymById(@PathVariable Long id) {
+    @Operation(summary = "Get gym by ID", description = "Retrieves a gym by its unique identifier. Requires ADMIN role or membership in the gym.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Gym found",
+                    content = @Content(schema = @Schema(implementation = GymResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Gym not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content)
+    })
+    public ResponseEntity<GymResponse> getGymById(
+            @Parameter(description = "Gym ID", required = true) @PathVariable Long id) {
         GymResponse response = gymService.getGymById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all gyms", description = "Retrieves all gym locations. Requires ADMIN role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Gyms retrieved successfully",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = GymResponse.class)))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content)
+    })
     public ResponseEntity<List<GymResponse>> getAllGyms() {
         List<GymResponse> response = gymService.getAllGyms();
         return ResponseEntity.ok(response);
@@ -59,8 +89,16 @@ public class GymController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update gym", description = "Updates an existing gym's information. Requires ADMIN role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Gym updated successfully",
+                    content = @Content(schema = @Schema(implementation = GymResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Gym not found", content = @Content)
+    })
     public ResponseEntity<GymResponse> updateGym(
-            @PathVariable Long id,
+            @Parameter(description = "Gym ID", required = true) @PathVariable Long id,
             @Valid @RequestBody GymRequest request) {
         GymResponse response = gymService.updateGym(id, request);
         return ResponseEntity.ok(response);
@@ -68,7 +106,14 @@ public class GymController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteGym(@PathVariable Long id) {
+    @Operation(summary = "Delete gym", description = "Deletes a gym location. Requires ADMIN role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Gym deleted successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Gym not found", content = @Content)
+    })
+    public ResponseEntity<Void> deleteGym(
+            @Parameter(description = "Gym ID", required = true) @PathVariable Long id) {
         gymService.deleteGym(id);
         return ResponseEntity.noContent().build();
     }

@@ -3,6 +3,14 @@ package com.example.gym_management.controller;
 import com.example.gym_management.dto.ScheduledClassRequest;
 import com.example.gym_management.dto.ScheduledClassResponse;
 import com.example.gym_management.service.ScheduledClassService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,23 +25,39 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/scheduled-classes")
 @RequiredArgsConstructor
+@Tag(name = "Scheduled Classes", description = "Scheduled class management operations")
 public class ScheduledClassController {
 
-  private final ScheduledClassService scheduledClassService;
+    private final ScheduledClassService scheduledClassService;
 
-  @PostMapping
-  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-  public ResponseEntity<ScheduledClassResponse> createScheduledClass(
-      @Valid @RequestBody ScheduledClassRequest request) {
-    ScheduledClassResponse response = scheduledClassService.createScheduledClass(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
-  }
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Create a scheduled class", description = "Schedules a new class with a specific trainer, room, and time. Requires ADMIN or MANAGER role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Scheduled class created successfully",
+                    content = @Content(schema = @Schema(implementation = ScheduledClassResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request data or scheduling conflict", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Class type, trainer, or room not found", content = @Content)
+    })
+    public ResponseEntity<ScheduledClassResponse> createScheduledClass(
+            @Valid @RequestBody ScheduledClassRequest request) {
+        ScheduledClassResponse response = scheduledClassService.createScheduledClass(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<ScheduledClassResponse> getScheduledClassById(@PathVariable Long id) {
-    ScheduledClassResponse response = scheduledClassService.getScheduledClassById(id);
-    return ResponseEntity.ok(response);
-  }
+    @GetMapping("/{id}")
+    @Operation(summary = "Get scheduled class by ID", description = "Retrieves a scheduled class by its unique identifier.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Scheduled class found",
+                    content = @Content(schema = @Schema(implementation = ScheduledClassResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Scheduled class not found", content = @Content)
+    })
+    public ResponseEntity<ScheduledClassResponse> getScheduledClassById(
+            @Parameter(description = "Scheduled Class ID", required = true) @PathVariable Long id) {
+        ScheduledClassResponse response = scheduledClassService.getScheduledClassById(id);
+        return ResponseEntity.ok(response);
+    }
 
   @GetMapping
   @PreAuthorize("hasRole('ADMIN')")
@@ -140,10 +164,17 @@ public class ScheduledClassController {
     return ResponseEntity.ok(response);
   }
 
-  @DeleteMapping("/{id}")
-  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-  public ResponseEntity<Void> deleteScheduledClass(@PathVariable Long id) {
-    scheduledClassService.deleteScheduledClass(id);
-    return ResponseEntity.noContent().build();
-  }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Delete scheduled class", description = "Deletes a scheduled class. Requires ADMIN or MANAGER role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Scheduled class deleted successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Scheduled class not found", content = @Content)
+    })
+    public ResponseEntity<Void> deleteScheduledClass(
+            @Parameter(description = "Scheduled Class ID", required = true) @PathVariable Long id) {
+        scheduledClassService.deleteScheduledClass(id);
+        return ResponseEntity.noContent().build();
+    }
 }
