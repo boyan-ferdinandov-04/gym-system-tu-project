@@ -1,6 +1,7 @@
 package com.example.gym_management.dto;
 
 import com.example.gym_management.entity.Payment.PaymentStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Payment creation request")
 public class PaymentRequest {
 
     @NotNull(message = "Member ID is required")
@@ -24,5 +26,6 @@ public class PaymentRequest {
 
     private LocalDateTime paymentDate;
 
+    @Schema(description = "Defaults to PENDING if not specified")
     private PaymentStatus status;
 }

@@ -1,6 +1,7 @@
 package com.example.gym_management.dto;
 
 import com.example.gym_management.entity.UserRole;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "User creation/update request")
 public class UserRequest {
 
     @NotBlank(message = "Username is required")
