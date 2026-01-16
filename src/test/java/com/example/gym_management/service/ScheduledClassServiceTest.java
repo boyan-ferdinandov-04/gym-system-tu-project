@@ -4,6 +4,7 @@ import com.example.gym_management.dto.*;
 import com.example.gym_management.entity.*;
 import com.example.gym_management.mapper.ScheduledClassMapper;
 import com.example.gym_management.repository.ClassTypeRepository;
+import com.example.gym_management.repository.GymRepository;
 import com.example.gym_management.repository.RoomRepository;
 import com.example.gym_management.repository.ScheduledClassRepository;
 import com.example.gym_management.repository.TrainerRepository;
@@ -32,6 +33,9 @@ class ScheduledClassServiceTest {
     private ScheduledClassRepository scheduledClassRepository;
 
     @Mock
+    private GymRepository gymRepository;
+
+    @Mock
     private ClassTypeRepository classTypeRepository;
 
     @Mock
@@ -49,6 +53,8 @@ class ScheduledClassServiceTest {
     @InjectMocks
     private ScheduledClassService scheduledClassService;
 
+    private Gym gym;
+    private GymDTO gymDTO;
     private ScheduledClass scheduledClass;
     private ScheduledClassRequest request;
     private ScheduledClassResponse response;
@@ -61,32 +67,41 @@ class ScheduledClassServiceTest {
     void setUp() {
         futureTime = LocalDateTime.now().plusDays(1);
 
+        gym = new Gym("Main Gym", "123 Main St", "555-1234");
+        gym.setId(1L);
+        gym.setStatus(GymStatus.ACTIVE);
+
+        gymDTO = new GymDTO(1L, "Main Gym");
+
         classType = new ClassType("Yoga", "Relaxing yoga class");
         classType.setId(1L);
 
-        trainer = new Trainer("Jane", "Smith");
+        trainer = new Trainer(gym, "Jane", "Smith");
         trainer.setId(1L);
 
-        room = new Room("Studio A", 20, true);
+        room = new Room(gym, "Studio A", 20, true);
         room.setId(1L);
 
-        scheduledClass = new ScheduledClass(classType, trainer, room, futureTime);
+        scheduledClass = new ScheduledClass(gym, classType, trainer, room, futureTime);
         scheduledClass.setId(1L);
         scheduledClass.setBookings(new ArrayList<>());
 
-        request = new ScheduledClassRequest(1L, 1L, 1L, futureTime);
+        request = new ScheduledClassRequest(1L, 1L, 1L, 1L, futureTime);
 
         ClassTypeDTO classTypeDTO = new ClassTypeDTO(1L, "Yoga", "Relaxing yoga class");
         TrainerDTO trainerDTO = new TrainerDTO(1L, "Jane", "Smith");
-        RoomDTO roomDTO = new RoomDTO(1L, "Studio A", 20, true);
-        response = new ScheduledClassResponse(1L, classTypeDTO, trainerDTO, roomDTO, futureTime, 0, 20);
+        RoomDTO roomDTO = new RoomDTO(1L, 1L, "Studio A", 20, true);
+        response = new ScheduledClassResponse(1L, gymDTO, classTypeDTO, trainerDTO, roomDTO, futureTime, 0, 20);
     }
 
     @Test
     void createScheduledClass_Success() {
+        when(gymRepository.findById(1L)).thenReturn(Optional.of(gym));
+        when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
         when(scheduledClassRepository.findByTrainerIdAndTimeRange(eq(1L), any(), any())).thenReturn(List.of());
         when(scheduledClassRepository.findByRoomIdAndTimeRange(eq(1L), any(), any())).thenReturn(List.of());
-        when(scheduledClassMapper.toEntity(request)).thenReturn(scheduledClass);
+        when(scheduledClassMapper.toEntityWithGym(request, gym)).thenReturn(scheduledClass);
         when(scheduledClassRepository.save(scheduledClass)).thenReturn(scheduledClass);
         when(scheduledClassMapper.toResponse(scheduledClass)).thenReturn(response);
 
@@ -100,6 +115,9 @@ class ScheduledClassServiceTest {
 
     @Test
     void createScheduledClass_TrainerConflict_ThrowsException() {
+        when(gymRepository.findById(1L)).thenReturn(Optional.of(gym));
+        when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
         when(scheduledClassRepository.findByTrainerIdAndTimeRange(eq(1L), any(), any()))
                 .thenReturn(List.of(scheduledClass));
 
@@ -110,6 +128,9 @@ class ScheduledClassServiceTest {
 
     @Test
     void createScheduledClass_RoomConflict_ThrowsException() {
+        when(gymRepository.findById(1L)).thenReturn(Optional.of(gym));
+        when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
         when(scheduledClassRepository.findByTrainerIdAndTimeRange(eq(1L), any(), any())).thenReturn(List.of());
         when(scheduledClassRepository.findByRoomIdAndTimeRange(eq(1L), any(), any()))
                 .thenReturn(List.of(scheduledClass));
@@ -207,11 +228,13 @@ class ScheduledClassServiceTest {
 
     @Test
     void updateScheduledClass_Success() {
-        ScheduledClassRequest updateRequest = new ScheduledClassRequest(1L, 1L, 1L, futureTime.plusHours(2));
-        ScheduledClassResponse updatedResponse = new ScheduledClassResponse(1L, null, null, null,
+        ScheduledClassRequest updateRequest = new ScheduledClassRequest(1L, 1L, 1L, 1L, futureTime.plusHours(2));
+        ScheduledClassResponse updatedResponse = new ScheduledClassResponse(1L, gymDTO, null, null, null,
                 futureTime.plusHours(2), 0, 20);
 
         when(scheduledClassRepository.findById(1L)).thenReturn(Optional.of(scheduledClass));
+        when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
         when(scheduledClassRepository.findByTrainerIdAndTimeRange(eq(1L), any(), any())).thenReturn(List.of());
         when(scheduledClassRepository.findByRoomIdAndTimeRange(eq(1L), any(), any())).thenReturn(List.of());
         when(scheduledClassRepository.save(scheduledClass)).thenReturn(scheduledClass);
