@@ -2,9 +2,12 @@ package com.example.gym_management.service;
 
 import com.example.gym_management.dto.RoomDTO;
 import com.example.gym_management.dto.RoomRequest;
+import com.example.gym_management.entity.Gym;
+import com.example.gym_management.entity.GymStatus;
 import com.example.gym_management.entity.Room;
 import com.example.gym_management.entity.ScheduledClass;
 import com.example.gym_management.mapper.RoomMapper;
+import com.example.gym_management.repository.GymRepository;
 import com.example.gym_management.repository.RoomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,29 +32,39 @@ class RoomServiceTest {
     private RoomRepository roomRepository;
 
     @Mock
+    private GymRepository gymRepository;
+
+    @Mock
     private RoomMapper roomMapper;
 
     @InjectMocks
     private RoomService roomService;
 
+    private Gym gym;
     private Room room;
     private RoomRequest roomRequest;
     private RoomDTO roomDTO;
 
     @BeforeEach
     void setUp() {
-        room = new Room("Studio A", 20, true);
+        gym = new Gym("Main Gym", "123 Main St", "555-1234");
+        gym.setId(1L);
+        gym.setStatus(GymStatus.ACTIVE);
+
+        room = new Room(gym, "Studio A", 20, true);
         room.setId(1L);
         room.setScheduledClasses(new ArrayList<>());
 
-        roomRequest = new RoomRequest("Studio A", 20, true);
+        roomRequest = new RoomRequest(1L, "Studio A", 20, true);
 
-        roomDTO = new RoomDTO(1L, "Studio A", 20, true);
+        roomDTO = new RoomDTO(1L, 1L, "Studio A", 20, true);
     }
 
     @Test
     void createRoom_Success() {
-        when(roomMapper.toEntity(roomRequest)).thenReturn(room);
+        when(gymRepository.findById(1L)).thenReturn(Optional.of(gym));
+        when(roomRepository.existsByGymIdAndRoomName(1L, "Studio A")).thenReturn(false);
+        when(roomMapper.toEntityWithGym(roomRequest, gym)).thenReturn(room);
         when(roomRepository.save(room)).thenReturn(room);
         when(roomMapper.toDto(room)).thenReturn(roomDTO);
 
@@ -114,10 +127,11 @@ class RoomServiceTest {
 
     @Test
     void updateRoom_Success() {
-        RoomRequest updateRequest = new RoomRequest("Studio B", 30, false);
-        RoomDTO updatedDTO = new RoomDTO(1L, "Studio B", 30, false);
+        RoomRequest updateRequest = new RoomRequest(1L, "Studio B", 30, false);
+        RoomDTO updatedDTO = new RoomDTO(1L, 1L, "Studio B", 30, false);
 
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(roomRepository.existsByGymIdAndRoomName(1L, "Studio B")).thenReturn(false);
         when(roomRepository.save(room)).thenReturn(room);
         when(roomMapper.toDto(room)).thenReturn(updatedDTO);
 
@@ -143,7 +157,7 @@ class RoomServiceTest {
 
     @Test
     void deleteRoom_Success() {
-        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(roomRepository.findByIdWithScheduledClasses(1L)).thenReturn(Optional.of(room));
 
         roomService.deleteRoom(1L);
 
@@ -152,7 +166,7 @@ class RoomServiceTest {
 
     @Test
     void deleteRoom_NotFound_ThrowsException() {
-        when(roomRepository.findById(1L)).thenReturn(Optional.empty());
+        when(roomRepository.findByIdWithScheduledClasses(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> roomService.deleteRoom(1L))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -164,7 +178,7 @@ class RoomServiceTest {
         ScheduledClass scheduledClass = new ScheduledClass();
         room.setScheduledClasses(List.of(scheduledClass));
 
-        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(roomRepository.findByIdWithScheduledClasses(1L)).thenReturn(Optional.of(room));
 
         assertThatThrownBy(() -> roomService.deleteRoom(1L))
                 .isInstanceOf(IllegalStateException.class)

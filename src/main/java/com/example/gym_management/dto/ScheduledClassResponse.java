@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class ScheduledClassResponse {
 
     private Long id;
+    private GymDTO gym;
     private ClassTypeDTO classType;
     private TrainerDTO trainer;
     private RoomDTO room;

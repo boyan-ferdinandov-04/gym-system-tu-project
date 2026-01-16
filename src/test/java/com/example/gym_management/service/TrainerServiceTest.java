@@ -1,12 +1,16 @@
 package com.example.gym_management.service;
 
+import com.example.gym_management.dto.GymDTO;
 import com.example.gym_management.dto.TrainerRequest;
 import com.example.gym_management.dto.TrainerResponse;
 import com.example.gym_management.entity.ClassType;
+import com.example.gym_management.entity.Gym;
+import com.example.gym_management.entity.GymStatus;
 import com.example.gym_management.entity.ScheduledClass;
 import com.example.gym_management.entity.Trainer;
 import com.example.gym_management.mapper.TrainerMapper;
 import com.example.gym_management.repository.ClassTypeRepository;
+import com.example.gym_management.repository.GymRepository;
 import com.example.gym_management.repository.TrainerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +33,9 @@ class TrainerServiceTest {
     private TrainerRepository trainerRepository;
 
     @Mock
+    private GymRepository gymRepository;
+
+    @Mock
     private ClassTypeRepository classTypeRepository;
 
     @Mock
@@ -37,6 +44,8 @@ class TrainerServiceTest {
     @InjectMocks
     private TrainerService trainerService;
 
+    private Gym gym;
+    private GymDTO gymDTO;
     private Trainer trainer;
     private TrainerRequest trainerRequest;
     private TrainerResponse trainerResponse;
@@ -44,14 +53,20 @@ class TrainerServiceTest {
 
     @BeforeEach
     void setUp() {
-        trainer = new Trainer("John", "Smith");
+        gym = new Gym("Main Gym", "123 Main St", "555-1234");
+        gym.setId(1L);
+        gym.setStatus(GymStatus.ACTIVE);
+
+        gymDTO = new GymDTO(1L, "Main Gym");
+
+        trainer = new Trainer(gym, "John", "Smith");
         trainer.setId(1L);
         trainer.setClassTypes(new HashSet<>());
         trainer.setScheduledClasses(new ArrayList<>());
 
-        trainerRequest = new TrainerRequest("John", "Smith", null);
+        trainerRequest = new TrainerRequest(1L, "John", "Smith", null);
 
-        trainerResponse = new TrainerResponse(1L, "John", "Smith", 0, new ArrayList<>());
+        trainerResponse = new TrainerResponse(1L, gymDTO, "John", "Smith", 0, new ArrayList<>());
 
         classType = new ClassType("Yoga", "Relaxing yoga class");
         classType.setId(1L);
@@ -59,7 +74,8 @@ class TrainerServiceTest {
 
     @Test
     void createTrainer_Success() {
-        when(trainerMapper.toEntity(trainerRequest)).thenReturn(trainer);
+        when(gymRepository.findById(1L)).thenReturn(Optional.of(gym));
+        when(trainerMapper.toEntityWithGym(trainerRequest, gym)).thenReturn(trainer);
         when(trainerRepository.save(trainer)).thenReturn(trainer);
         when(trainerMapper.toResponseWithClassTypes(trainer)).thenReturn(trainerResponse);
 
@@ -118,8 +134,8 @@ class TrainerServiceTest {
 
     @Test
     void updateTrainer_Success() {
-        TrainerRequest updateRequest = new TrainerRequest("Jane", "Smith", null);
-        TrainerResponse updatedResponse = new TrainerResponse(1L, "Jane", "Smith", 0, new ArrayList<>());
+        TrainerRequest updateRequest = new TrainerRequest(1L, "Jane", "Smith", null);
+        TrainerResponse updatedResponse = new TrainerResponse(1L, gymDTO, "Jane", "Smith", 0, new ArrayList<>());
 
         when(trainerRepository.findByIdWithClassTypes(1L)).thenReturn(Optional.of(trainer));
         when(trainerRepository.save(trainer)).thenReturn(trainer);

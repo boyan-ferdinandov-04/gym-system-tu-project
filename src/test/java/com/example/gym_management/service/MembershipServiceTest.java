@@ -1,7 +1,10 @@
 package com.example.gym_management.service;
 
+import com.example.gym_management.dto.GymDTO;
 import com.example.gym_management.dto.MembershipPlanRequest;
 import com.example.gym_management.dto.MembershipPlanResponse;
+import com.example.gym_management.entity.Gym;
+import com.example.gym_management.entity.GymStatus;
 import com.example.gym_management.entity.Member;
 import com.example.gym_management.entity.MembershipPlan;
 import com.example.gym_management.mapper.MembershipPlanMapper;
@@ -15,8 +18,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,19 +40,28 @@ class MembershipServiceTest {
     @InjectMocks
     private MembershipService membershipService;
 
+    private Gym gym;
     private MembershipPlan membershipPlan;
     private MembershipPlanRequest request;
     private MembershipPlanResponse response;
 
     @BeforeEach
     void setUp() {
-        membershipPlan = new MembershipPlan("Gold", new BigDecimal("99.99"), 30);
+        gym = new Gym("Main Gym", "123 Main St", "555-1234");
+        gym.setId(1L);
+        gym.setStatus(GymStatus.ACTIVE);
+
+        Set<Gym> accessibleGyms = new HashSet<>();
+        accessibleGyms.add(gym);
+
+        membershipPlan = new MembershipPlan("Gold", new BigDecimal("99.99"), 30, accessibleGyms);
         membershipPlan.setId(1L);
         membershipPlan.setMembers(new ArrayList<>());
 
-        request = new MembershipPlanRequest("Gold", new BigDecimal("99.99"), 30);
+        request = new MembershipPlanRequest("Gold", new BigDecimal("99.99"), 30, Set.of(1L));
 
-        response = new MembershipPlanResponse(1L, "Gold", new BigDecimal("99.99"), 30);
+        GymDTO gymDTO = new GymDTO(1L, "Main Gym");
+        response = new MembershipPlanResponse(1L, "Gold", new BigDecimal("99.99"), 30, List.of(gymDTO));
     }
 
     @Test
@@ -186,8 +200,9 @@ class MembershipServiceTest {
 
     @Test
     void updateMembershipPlan_Success() {
-        MembershipPlanRequest updateRequest = new MembershipPlanRequest("Platinum", new BigDecimal("149.99"), 60);
-        MembershipPlanResponse updatedResponse = new MembershipPlanResponse(1L, "Platinum", new BigDecimal("149.99"), 60);
+        MembershipPlanRequest updateRequest = new MembershipPlanRequest("Platinum", new BigDecimal("149.99"), 60, Set.of(1L));
+        GymDTO gymDTO = new GymDTO(1L, "Main Gym");
+        MembershipPlanResponse updatedResponse = new MembershipPlanResponse(1L, "Platinum", new BigDecimal("149.99"), 60, List.of(gymDTO));
 
         when(membershipPlanRepository.findById(1L)).thenReturn(Optional.of(membershipPlan));
         when(membershipPlanRepository.save(membershipPlan)).thenReturn(membershipPlan);

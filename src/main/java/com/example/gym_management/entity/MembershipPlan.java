@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "membership_plans")
@@ -30,6 +32,14 @@ public class MembershipPlan {
   @Column(name = "duration_days", nullable = false)
   private Integer durationDays;
 
+  @ManyToMany
+  @JoinTable(
+      name = "membership_plan_gyms",
+      joinColumns = @JoinColumn(name = "membership_plan_id"),
+      inverseJoinColumns = @JoinColumn(name = "gym_id")
+  )
+  private Set<Gym> accessibleGyms = new HashSet<>();
+
   @OneToMany(mappedBy = "membershipPlan", cascade = CascadeType.ALL)
   private List<Member> members;
 
@@ -37,5 +47,12 @@ public class MembershipPlan {
     this.tierName = tierName;
     this.price = price;
     this.durationDays = durationDays;
+  }
+
+  public MembershipPlan(String tierName, BigDecimal price, Integer durationDays, Set<Gym> accessibleGyms) {
+    this.tierName = tierName;
+    this.price = price;
+    this.durationDays = durationDays;
+    this.accessibleGyms = accessibleGyms;
   }
 }

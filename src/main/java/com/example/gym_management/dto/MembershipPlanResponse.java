@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,13 +14,9 @@ import java.math.BigDecimal;
 @Schema(description = "Membership plan details")
 public class MembershipPlanResponse {
 
-    private Long id;
-
-    @Schema(description = "Plan tier name", example = "Premium")
-    private String tierName;
-
-    private BigDecimal price;
-
-    @Schema(description = "Plan duration in days")
-    private Integer durationDays;
+  private Long id;
+  private String tierName;
+  private BigDecimal price;
+  private Integer durationDays;
+  private List<GymDTO> accessibleGyms;
 }

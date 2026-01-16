@@ -57,6 +57,7 @@ public class TrainerController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all trainers", description = "Retrieves all trainers.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Trainers retrieved successfully",
@@ -64,6 +65,12 @@ public class TrainerController {
     })
     public ResponseEntity<List<TrainerResponse>> getAllTrainers() {
         List<TrainerResponse> trainers = trainerService.getAllTrainers();
+        return ResponseEntity.ok(trainers);
+    }
+
+    @GetMapping("/gym/{gymId}")
+    public ResponseEntity<List<TrainerResponse>> getTrainersByGymId(@PathVariable Long gymId) {
+        List<TrainerResponse> trainers = trainerService.getTrainersByGymId(gymId);
         return ResponseEntity.ok(trainers);
     }
 
@@ -76,6 +83,14 @@ public class TrainerController {
     public ResponseEntity<List<TrainerResponse>> searchTrainersByName(
             @Parameter(description = "Name to search for", required = true) @RequestParam String name) {
         List<TrainerResponse> trainers = trainerService.searchTrainersByName(name);
+        return ResponseEntity.ok(trainers);
+    }
+
+    @GetMapping("/gym/{gymId}/search")
+    public ResponseEntity<List<TrainerResponse>> searchTrainersByNameAndGymId(
+            @PathVariable Long gymId,
+            @RequestParam String name) {
+        List<TrainerResponse> trainers = trainerService.searchTrainersByNameAndGymId(name, gymId);
         return ResponseEntity.ok(trainers);
     }
 
@@ -152,6 +167,14 @@ public class TrainerController {
     public ResponseEntity<List<TrainerResponse>> getTrainersByClassType(
             @Parameter(description = "Class Type ID", required = true) @PathVariable Long classTypeId) {
         List<TrainerResponse> trainers = trainerService.getTrainersByClassType(classTypeId);
+        return ResponseEntity.ok(trainers);
+    }
+
+    @GetMapping("/gym/{gymId}/by-class-type/{classTypeId}")
+    public ResponseEntity<List<TrainerResponse>> getTrainersByClassTypeAndGymId(
+            @PathVariable Long gymId,
+            @PathVariable Long classTypeId) {
+        List<TrainerResponse> trainers = trainerService.getTrainersByClassTypeAndGymId(classTypeId, gymId);
         return ResponseEntity.ok(trainers);
     }
 }

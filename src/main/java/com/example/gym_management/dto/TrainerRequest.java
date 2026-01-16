@@ -14,6 +14,9 @@ import java.util.Set;
 @Schema(description = "Trainer creation/update request")
 public class TrainerRequest {
 
+    @NotNull(message = "Gym ID is required")
+    private Long gymId;
+
     @NotBlank(message = "First name is required")
     @Size(max = 50, message = "First name cannot exceed 50 characters")
     private String firstName;

@@ -56,6 +56,7 @@ public class RoomController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all rooms", description = "Retrieves all gym rooms.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Rooms retrieved successfully",
@@ -63,6 +64,12 @@ public class RoomController {
     })
     public ResponseEntity<List<RoomDTO>> getAllRooms() {
         List<RoomDTO> rooms = roomService.getAllRooms();
+        return ResponseEntity.ok(rooms);
+    }
+
+    @GetMapping("/gym/{gymId}")
+    public ResponseEntity<List<RoomDTO>> getRoomsByGymId(@PathVariable Long gymId) {
+        List<RoomDTO> rooms = roomService.getRoomsByGymId(gymId);
         return ResponseEntity.ok(rooms);
     }
 

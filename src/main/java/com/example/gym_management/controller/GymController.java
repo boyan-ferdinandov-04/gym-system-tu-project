@@ -2,6 +2,10 @@ package com.example.gym_management.controller;
 
 import com.example.gym_management.dto.GymRequest;
 import com.example.gym_management.dto.GymResponse;
+import com.example.gym_management.dto.RoomDTO;
+import com.example.gym_management.dto.ScheduledClassResponse;
+import com.example.gym_management.dto.TrainerResponse;
+import com.example.gym_management.entity.GymStatus;
 import com.example.gym_management.service.GymService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -70,6 +74,19 @@ public class GymController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<GymResponse>> getActiveGyms() {
+        List<GymResponse> response = gymService.getActiveGyms();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/status/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<GymResponse>> getGymsByStatus(@PathVariable GymStatus status) {
+        List<GymResponse> response = gymService.getGymsByStatus(status);
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update gym", description = "Updates an existing gym's information. Requires ADMIN role.")
@@ -99,5 +116,33 @@ public class GymController {
             @Parameter(description = "Gym ID", required = true) @PathVariable Long id) {
         gymService.deleteGym(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/rooms")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isUserInGym(#id)")
+    public ResponseEntity<List<RoomDTO>> getRoomsByGymId(@PathVariable Long id) {
+        List<RoomDTO> response = gymService.getRoomsByGymId(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/trainers")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isUserInGym(#id)")
+    public ResponseEntity<List<TrainerResponse>> getTrainersByGymId(@PathVariable Long id) {
+        List<TrainerResponse> response = gymService.getTrainersByGymId(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/classes")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isUserInGym(#id)")
+    public ResponseEntity<List<ScheduledClassResponse>> getClassesByGymId(@PathVariable Long id) {
+        List<ScheduledClassResponse> response = gymService.getScheduledClassesByGymId(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/classes/upcoming")
+    @PreAuthorize("hasRole('ADMIN') or @securityService.isUserInGym(#id)")
+    public ResponseEntity<List<ScheduledClassResponse>> getUpcomingClassesByGymId(@PathVariable Long id) {
+        List<ScheduledClassResponse> response = gymService.getUpcomingClassesByGymId(id);
+        return ResponseEntity.ok(response);
     }
 }

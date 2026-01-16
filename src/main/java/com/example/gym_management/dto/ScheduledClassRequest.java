@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 @Schema(description = "Scheduled class creation/update request")
 public class ScheduledClassRequest {
 
+    @NotNull(message = "Gym ID is required")
+    private Long gymId;
+
     @NotNull(message = "Class type ID is required")
     private Long classTypeId;
 

@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class RoomDTO {
 
     private Long id;
+    private Long gymId;
     private String roomName;
 
     @Schema(description = "Maximum capacity")

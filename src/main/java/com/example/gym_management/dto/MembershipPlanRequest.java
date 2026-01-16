@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -24,9 +25,11 @@ public class MembershipPlanRequest {
     @Digits(integer = 8, fraction = 2, message = "Price must have at most 2 decimal places")
     private BigDecimal price;
 
-    @NotNull(message = "Duration is required")
-    @Min(value = 1, message = "Duration must be at least 1 day")
-    @Max(value = 3650, message = "Duration cannot exceed 3650 days (10 years)")
-    @Schema(description = "Plan duration in days", example = "30")
-    private Integer durationDays;
+  @NotNull(message = "Duration is required")
+  @Min(value = 1, message = "Duration must be at least 1 day")
+  @Max(value = 3650, message = "Duration cannot exceed 3650 days (10 years)")
+  private Integer durationDays;
+
+  @NotEmpty(message = "At least one accessible gym is required")
+  private Set<Long> accessibleGymIds;
 }
