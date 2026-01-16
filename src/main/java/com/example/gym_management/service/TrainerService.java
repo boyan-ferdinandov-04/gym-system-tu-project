@@ -3,9 +3,11 @@ package com.example.gym_management.service;
 import com.example.gym_management.dto.TrainerRequest;
 import com.example.gym_management.dto.TrainerResponse;
 import com.example.gym_management.entity.ClassType;
+import com.example.gym_management.entity.Gym;
 import com.example.gym_management.entity.Trainer;
 import com.example.gym_management.mapper.TrainerMapper;
 import com.example.gym_management.repository.ClassTypeRepository;
+import com.example.gym_management.repository.GymRepository;
 import com.example.gym_management.repository.TrainerRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +25,16 @@ import java.util.Set;
 public class TrainerService {
 
   private final TrainerRepository trainerRepository;
+  private final GymRepository gymRepository;
   private final ClassTypeRepository classTypeRepository;
   private final TrainerMapper trainerMapper;
 
   @Transactional
   public TrainerResponse createTrainer(@Valid TrainerRequest request) {
-    Trainer trainer = trainerMapper.toEntity(request);
+    Gym gym = gymRepository.findById(request.getGymId())
+        .orElseThrow(() -> new IllegalArgumentException("Gym not found with id: " + request.getGymId()));
+
+    Trainer trainer = trainerMapper.toEntityWithGym(request, gym);
     Trainer saved = trainerRepository.save(trainer);
     return trainerMapper.toResponseWithClassTypes(saved);
   }
@@ -41,8 +47,23 @@ public class TrainerService {
   }
 
   @Transactional(readOnly = true)
+  public TrainerResponse getTrainerByIdAndGymId(Long trainerId, Long gymId) {
+    Trainer trainer = trainerRepository.findByIdAndGymId(trainerId, gymId)
+        .orElseThrow(() -> new IllegalArgumentException("Trainer not found with id: " + trainerId + " in gym: " + gymId));
+    return trainerMapper.toResponseWithClassTypes(trainer);
+  }
+
+  @Transactional(readOnly = true)
   public List<TrainerResponse> getAllTrainers() {
     return trainerMapper.toResponseListWithoutCount(trainerRepository.findAll());
+  }
+
+  @Transactional(readOnly = true)
+  public List<TrainerResponse> getTrainersByGymId(Long gymId) {
+    if (!gymRepository.existsById(gymId)) {
+      throw new IllegalArgumentException("Gym not found with id: " + gymId);
+    }
+    return trainerMapper.toResponseListWithoutCount(trainerRepository.findByGymId(gymId));
   }
 
   @Transactional(readOnly = true)
@@ -51,6 +72,17 @@ public class TrainerService {
       throw new IllegalArgumentException("Search name cannot be empty");
     }
     return trainerMapper.toResponseListWithoutCount(trainerRepository.searchByName(name));
+  }
+
+  @Transactional(readOnly = true)
+  public List<TrainerResponse> searchTrainersByNameAndGymId(String name, Long gymId) {
+    if (name == null || name.trim().isEmpty()) {
+      throw new IllegalArgumentException("Search name cannot be empty");
+    }
+    if (!gymRepository.existsById(gymId)) {
+      throw new IllegalArgumentException("Gym not found with id: " + gymId);
+    }
+    return trainerMapper.toResponseListWithoutCount(trainerRepository.searchByNameAndGymId(name, gymId));
   }
 
   @Transactional
@@ -116,5 +148,16 @@ public class TrainerService {
       throw new IllegalArgumentException("Class type not found with id: " + classTypeId);
     }
     return trainerMapper.toResponseListWithoutCount(trainerRepository.findByClassTypeId(classTypeId));
+  }
+
+  @Transactional(readOnly = true)
+  public List<TrainerResponse> getTrainersByClassTypeAndGymId(Long classTypeId, Long gymId) {
+    if (!classTypeRepository.existsById(classTypeId)) {
+      throw new IllegalArgumentException("Class type not found with id: " + classTypeId);
+    }
+    if (!gymRepository.existsById(gymId)) {
+      throw new IllegalArgumentException("Gym not found with id: " + gymId);
+    }
+    return trainerMapper.toResponseListWithoutCount(trainerRepository.findByClassTypeIdAndGymId(classTypeId, gymId));
   }
 }
