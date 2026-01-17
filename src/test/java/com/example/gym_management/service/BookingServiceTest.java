@@ -1,5 +1,6 @@
 package com.example.gym_management.service;
 
+import com.example.gym_management.config.MembershipProperties;
 import com.example.gym_management.dto.BookingDTOs.BookingEligibility;
 import com.example.gym_management.dto.BookingDTOs.ClassAvailability;
 import com.example.gym_management.dto.BookingRequest;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
@@ -47,6 +50,9 @@ class BookingServiceTest {
 
     @Mock
     private WaitlistService waitlistService;
+
+    @Mock
+    private MembershipProperties membershipProperties;
 
     @InjectMocks
     private BookingService bookingService;
@@ -69,6 +75,9 @@ class BookingServiceTest {
 
         member = new Member("John", "Doe", "john@example.com", membershipPlan);
         member.setId(1L);
+        member.setMembershipStatus(Member.MembershipStatus.ACTIVE);
+        member.setMembershipStartDate(LocalDate.now());
+        member.setMembershipEndDate(LocalDate.now().plusDays(30));
 
         room = new Room("Studio A", 20, true);
         room.setId(1L);
@@ -90,6 +99,9 @@ class BookingServiceTest {
         MemberDTO memberDTO = new MemberDTO(1L, "John", "Doe", "john@example.com");
         bookingResponse = new BookingResponse(1L, memberDTO, null, BookingStatus.ENROLLED, futureTime, "Yoga",
                 "Jane Smith", "Studio A");
+
+        // Mock membership properties (lenient since not all tests use it)
+        lenient().when(membershipProperties.getCancellationDeadlineHours()).thenReturn(1);
     }
 
     @Test
