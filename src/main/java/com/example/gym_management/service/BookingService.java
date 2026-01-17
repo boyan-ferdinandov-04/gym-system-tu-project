@@ -1,5 +1,6 @@
 package com.example.gym_management.service;
 
+import com.example.gym_management.config.MembershipProperties;
 import com.example.gym_management.dto.BookingDTOs.BookingEligibility;
 import com.example.gym_management.dto.BookingDTOs.ClassAvailability;
 import com.example.gym_management.dto.BookingRequest;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +34,7 @@ public class BookingService {
   private final ScheduledClassRepository scheduledClassRepository;
   private final BookingMapper bookingMapper;
   private final WaitlistService waitlistService;
+  private final MembershipProperties membershipProperties;
 
   @Transactional
   public BookingResponse createBooking(@Valid BookingRequest request) {
@@ -60,9 +63,31 @@ public class BookingService {
 
     if (member.getMembershipPlan() == null) {
       throw new IllegalStateException(
-          "Member '" + member.getFirstName() + " " + member.getLastName() +
-              "' does not have an active membership plan. " +
+          "Member does not have an active membership plan. " +
               "Please assign a membership plan before booking classes.");
+    }
+
+    if (member.getMembershipStatus() == null) {
+      throw new IllegalStateException("Member membership status is not set.");
+    }
+
+    if (member.getMembershipStatus() == Member.MembershipStatus.GRACE_PERIOD) {
+      throw new IllegalStateException(
+          "Membership is in grace period (expired on " + member.getMembershipEndDate() +
+              "). New bookings are blocked. Please renew to continue booking.");
+    }
+
+    if (member.getMembershipStatus() != Member.MembershipStatus.ACTIVE) {
+      throw new IllegalStateException(
+          "Member membership is " + member.getMembershipStatus() +
+              ". Only ACTIVE memberships can book classes.");
+    }
+
+    if (member.getMembershipEndDate() != null &&
+        LocalDate.now().isAfter(member.getMembershipEndDate())) {
+      throw new IllegalStateException(
+          "Membership expired on " + member.getMembershipEndDate() +
+              ". Please renew to book classes.");
     }
 
     if (bookingRepository.existsByMemberIdAndScheduledClassIdAndStatus(
@@ -104,10 +129,11 @@ public class BookingService {
       throw new IllegalStateException("Booking is already cancelled.");
     }
 
-    LocalDateTime cancellationDeadline = booking.getScheduledClass().getStartTime().minusHours(1);
+    int deadlineHours = membershipProperties.getCancellationDeadlineHours();
+    LocalDateTime cancellationDeadline = booking.getScheduledClass().getStartTime().minusHours(deadlineHours);
     if (LocalDateTime.now().isAfter(cancellationDeadline)) {
       throw new IllegalStateException(
-          "Cannot cancel booking within 1 hour of class start time. " +
+          "Cannot cancel booking within " + deadlineHours + " hour(s) of class start time. " +
               "Cancellation deadline was: " + cancellationDeadline);
     }
 

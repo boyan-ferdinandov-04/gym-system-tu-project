@@ -10,6 +10,8 @@ import com.example.gym_management.repository.MembershipPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,11 @@ public class MemberMapper {
                 member.getLastName(),
                 member.getEmail(),
                 membershipPlanMapper.toResponse(member.getMembershipPlan()),
+                member.getMembershipStartDate(),
+                member.getMembershipEndDate(),
+                member.getMembershipStatus() != null ? member.getMembershipStatus().name() : null,
+                calculateDaysUntilExpiration(member),
+                member.isExpired(),
                 calculateActiveBookingsCount(member)
         );
     }
@@ -58,6 +65,11 @@ public class MemberMapper {
                 member.getLastName(),
                 member.getEmail(),
                 membershipPlanMapper.toResponse(member.getMembershipPlan()),
+                member.getMembershipStartDate(),
+                member.getMembershipEndDate(),
+                member.getMembershipStatus() != null ? member.getMembershipStatus().name() : null,
+                calculateDaysUntilExpiration(member),
+                member.isExpired(),
                 null
         );
     }
@@ -106,5 +118,16 @@ public class MemberMapper {
         return (int) member.getBookings().stream()
                 .filter(b -> b.getStatus() == Booking.BookingStatus.ENROLLED)
                 .count();
+    }
+
+    private Integer calculateDaysUntilExpiration(Member member) {
+        if (member.getMembershipEndDate() == null) {
+            return null;
+        }
+        LocalDate today = LocalDate.now();
+        if (member.getMembershipEndDate().isBefore(today)) {
+            return 0;
+        }
+        return (int) ChronoUnit.DAYS.between(today, member.getMembershipEndDate());
     }
 }
