@@ -31,6 +31,7 @@ public class BookingService {
   private final MemberRepository memberRepository;
   private final ScheduledClassRepository scheduledClassRepository;
   private final BookingMapper bookingMapper;
+  private final WaitlistService waitlistService;
 
   @Transactional
   public BookingResponse createBooking(@Valid BookingRequest request) {
@@ -112,6 +113,9 @@ public class BookingService {
 
     booking.setStatus(BookingStatus.CANCELLED);
     Booking updatedBooking = bookingRepository.save(booking);
+
+    Long scheduledClassId = booking.getScheduledClass().getId();
+    waitlistService.promoteFromWaitlist(scheduledClassId);
 
     return bookingMapper.toResponse(updatedBooking);
   }
