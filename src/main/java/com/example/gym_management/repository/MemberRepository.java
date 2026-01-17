@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +27,27 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("SELECT m FROM Member m LEFT JOIN FETCH m.bookings WHERE m.id = :id")
     Optional<Member> findByIdWithBookings(@Param("id") Long id);
+
+    List<Member> findByMembershipStatus(Member.MembershipStatus status);
+
+    @Query("SELECT m FROM Member m WHERE m.membershipEndDate IS NOT NULL " +
+           "AND m.membershipEndDate BETWEEN :startDate AND :endDate " +
+           "AND m.membershipStatus IN ('ACTIVE', 'GRACE_PERIOD')")
+    List<Member> findExpiringBetween(@Param("startDate") LocalDate startDate,
+                                     @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT m FROM Member m WHERE m.membershipEndDate < :date " +
+           "AND m.membershipStatus = 'ACTIVE'")
+    List<Member> findExpiredActive(@Param("date") LocalDate date);
+
+    @Query("SELECT m FROM Member m WHERE m.membershipEndDate < :date " +
+           "AND m.membershipStatus = 'GRACE_PERIOD'")
+    List<Member> findBeyondGracePeriod(@Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(m) FROM Member m WHERE m.membershipStatus = 'ACTIVE'")
+    Long countActiveMembers();
+
+    @Query("SELECT m FROM Member m WHERE m.membershipPlan IS NOT NULL " +
+           "AND m.membershipEndDate IS NULL")
+    List<Member> findWithPlanButNoEndDate();
 }
