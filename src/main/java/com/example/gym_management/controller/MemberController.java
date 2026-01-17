@@ -2,6 +2,7 @@ package com.example.gym_management.controller;
 
 import com.example.gym_management.dto.MemberRequest;
 import com.example.gym_management.dto.MemberResponse;
+import com.example.gym_management.entity.Member;
 import com.example.gym_management.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -163,5 +164,124 @@ public class MemberController {
             @Parameter(description = "Member ID", required = true) @PathVariable Long memberId) {
         MemberResponse response = memberService.removeMembershipPlan(memberId);
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{memberId}/renew")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    @Operation(summary = "Renew membership", description = "Renews a member's membership by extending the end date by the plan duration. Requires ADMIN, MANAGER, or EMPLOYEE role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Membership renewed successfully",
+                    content = @Content(schema = @Schema(implementation = MemberResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Member not found", content = @Content)
+    })
+    public ResponseEntity<MemberResponse> renewMembership(
+            @Parameter(description = "Member ID", required = true) @PathVariable Long memberId) {
+        MemberResponse response = memberService.renewMembership(memberId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{memberId}/extend")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    @Operation(summary = "Extend membership", description = "Extends a member's membership by a specific number of days. Requires ADMIN, MANAGER, or EMPLOYEE role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Membership extended successfully",
+                    content = @Content(schema = @Schema(implementation = MemberResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid days value", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Member not found", content = @Content)
+    })
+    public ResponseEntity<MemberResponse> extendMembership(
+            @Parameter(description = "Member ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "Number of days to extend", required = true) @RequestParam Integer days) {
+        MemberResponse response = memberService.extendMembership(memberId, days);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{memberId}/suspend")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Suspend membership", description = "Suspends a member's membership. Requires ADMIN or MANAGER role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Membership suspended successfully",
+                    content = @Content(schema = @Schema(implementation = MemberResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Member not found", content = @Content)
+    })
+    public ResponseEntity<MemberResponse> suspendMembership(
+            @Parameter(description = "Member ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "Reason for suspension") @RequestParam(required = false) String reason) {
+        MemberResponse response = memberService.suspendMembership(memberId, reason);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{memberId}/reactivate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Reactivate membership", description = "Reactivates a suspended membership. Requires ADMIN or MANAGER role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Membership reactivated successfully",
+                    content = @Content(schema = @Schema(implementation = MemberResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Member not found", content = @Content)
+    })
+    public ResponseEntity<MemberResponse> reactivateMembership(
+            @Parameter(description = "Member ID", required = true) @PathVariable Long memberId) {
+        MemberResponse response = memberService.reactivateMembership(memberId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{memberId}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Cancel membership", description = "Cancels a member's membership. Requires ADMIN or MANAGER role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Membership cancelled successfully",
+                    content = @Content(schema = @Schema(implementation = MemberResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Member not found", content = @Content)
+    })
+    public ResponseEntity<MemberResponse> cancelMembership(
+            @Parameter(description = "Member ID", required = true) @PathVariable Long memberId,
+            @Parameter(description = "Reason for cancellation") @RequestParam(required = false) String reason) {
+        MemberResponse response = memberService.cancelMembership(memberId, reason);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/expiring")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    @Operation(summary = "Get expiring members", description = "Retrieves members whose membership will expire within the specified number of days. Requires ADMIN, MANAGER, or EMPLOYEE role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Expiring members retrieved successfully",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = MemberResponse.class)))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content)
+    })
+    public ResponseEntity<List<MemberResponse>> getExpiringMembers(
+            @Parameter(description = "Number of days ahead to check", required = false)
+            @RequestParam(defaultValue = "7") Integer days) {
+        List<MemberResponse> response = memberService.getExpiringMembers(days);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/by-status/{status}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    @Operation(summary = "Get members by status", description = "Retrieves all members with a specific membership status. Requires ADMIN, MANAGER, or EMPLOYEE role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Members retrieved successfully",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = MemberResponse.class)))),
+            @ApiResponse(responseCode = "400", description = "Invalid status", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content)
+    })
+    public ResponseEntity<List<MemberResponse>> getMembersByStatus(
+            @Parameter(description = "Membership status", required = true) @PathVariable Member.MembershipStatus status) {
+        List<MemberResponse> response = memberService.getMembersByStatus(status);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/stats/active-count")
+    @Operation(summary = "Get active members count", description = "Returns the total count of members with ACTIVE membership status.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Count retrieved successfully")
+    })
+    public ResponseEntity<Long> getActiveMembersCount() {
+        Long count = memberService.getActiveMembersCount();
+        return ResponseEntity.ok(count);
     }
 }
