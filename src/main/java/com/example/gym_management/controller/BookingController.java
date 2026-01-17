@@ -1,11 +1,13 @@
 package com.example.gym_management.controller;
 
+import com.example.gym_management.dto.BookingConflictResponse;
 import com.example.gym_management.dto.BookingDTOs.BookingEligibility;
 import com.example.gym_management.dto.BookingDTOs.ClassAvailability;
 import com.example.gym_management.dto.BookingRequest;
 import com.example.gym_management.dto.BookingResponse;
 import com.example.gym_management.entity.Booking.BookingStatus;
 import com.example.gym_management.service.BookingService;
+import com.example.gym_management.service.WaitlistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -33,20 +35,38 @@ import java.util.Map;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final WaitlistService waitlistService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    @Operation(summary = "Create a booking", description = "Creates a new class booking for a member. Requires ADMIN, MANAGER, or EMPLOYEE role.")
+    @Operation(summary = "Create a booking", description = "Creates a new class booking for a member. Returns 409 with waitlist info if class is full. Requires ADMIN, MANAGER, or EMPLOYEE role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Booking created successfully",
                     content = @Content(schema = @Schema(implementation = BookingResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid request data or class full", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Class is full - waitlist available",
+                    content = @Content(schema = @Schema(implementation = BookingConflictResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content),
             @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
             @ApiResponse(responseCode = "404", description = "Member or scheduled class not found", content = @Content)
     })
-    public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
-        BookingResponse response = bookingService.createBooking(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<?> createBooking(@Valid @RequestBody BookingRequest request) {
+        try {
+            BookingResponse response = bookingService.createBooking(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalStateException e) {
+            if (e.getMessage().contains("fully booked")) {
+                Long waitlistSize = waitlistService.getWaitlistSize(request.getScheduledClassId());
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    new BookingConflictResponse(
+                        "Class is fully booked",
+                        "waitlist_available",
+                        waitlistSize,
+                        "/api/waitlists"
+                    )
+                );
+            }
+            throw e;
+        }
     }
 
     @GetMapping("/{id}")
