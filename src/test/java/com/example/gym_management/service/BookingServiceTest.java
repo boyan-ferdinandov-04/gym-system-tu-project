@@ -45,6 +45,9 @@ class BookingServiceTest {
     @Mock
     private BookingMapper bookingMapper;
 
+    @Mock
+    private WaitlistService waitlistService;
+
     @InjectMocks
     private BookingService bookingService;
 
